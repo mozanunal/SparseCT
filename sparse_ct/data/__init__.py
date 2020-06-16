@@ -30,3 +30,21 @@ def noisy_shepp_logan(
         return x[350:450, 200:300]
 
     return gt, noisy, FOCUS
+
+
+def sparse_shepp_logan(
+    noise_level=0.35,
+    gray=True,
+    n_proj=32,
+    angle1=0.0,
+    angle2=180.0
+):
+    gt = resize(shepp_logan_phantom(), (512, 512))
+    theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
+    sinogram = radon(gt, theta=theta, circle=True)
+    noisy = iradon(sinogram, theta=theta)
+
+    def FOCUS(x):
+        return x[350:450, 200:300]
+
+    return gt, noisy, FOCUS

@@ -5,7 +5,7 @@ import numpy as np
 from skimage.metrics import (
     mean_squared_error, structural_similarity, peak_signal_noise_ratio)
 
-from data import (noisy_zebra, noisy_shepp_logan)
+from data import (noisy_zebra, noisy_shepp_logan, sparse_shepp_logan)
 from tool import im2tensor, plot_result
 from loss.tv import tv_2d_l2
 from loss.perceptual import VGGPerceptualLoss
@@ -16,7 +16,7 @@ EPOCH = 3000
 div = EPOCH / 20
 
 if __name__ == "__main__":
-    gt, noisy, FOCUS = noisy_shepp_logan()
+    gt, noisy, FOCUS = sparse_shepp_logan()
     plt.figure(figsize=(10, 10))
     plt.imshow(np.hstack((gt, noisy)), cmap='gray')
     plt.imshow(np.hstack((FOCUS(gt), FOCUS(noisy))), cmap='gray')

@@ -5,18 +5,18 @@ import numpy as np
 from skimage.metrics import (
     mean_squared_error, structural_similarity, peak_signal_noise_ratio)
 
-from data import (noisy_zebra, noisy_shepp_logan, sparse_shepp_logan)
+from data import (noisy_zebra, noisy_shepp_logan, sparse_shepp_logan, sparse_breast_phantom)
 from tool import im2tensor, plot_result
 from loss.tv import tv_2d_l2
 from loss.perceptual import VGGPerceptualLoss
 
 DEVICE = 'cuda'
-TV_LAMBDA = 0.8
+TV_LAMBDA = 0.3
 EPOCH = 3000
 div = EPOCH / 20
 
 if __name__ == "__main__":
-    gt, noisy, FOCUS = sparse_shepp_logan()
+    gt, noisy, FOCUS = sparse_breast_phantom()
     plt.figure(figsize=(10, 10))
     plt.imshow(np.hstack((gt, noisy)), cmap='gray')
     plt.imshow(np.hstack((FOCUS(gt), FOCUS(noisy))), cmap='gray')
@@ -44,8 +44,8 @@ if __name__ == "__main__":
         optimizer.zero_grad()
         lossD = l2_norm(x_iter, x_initial)
         lossT = TV_LAMBDA * tv_2d_l2(x_iter)
-        #lossP = perceptual_dis(x_iter.unsqueeze(0), x_initial.unsqueeze(0))
-        loss = lossT + lossD
+        lossP = perceptual_dis(x_iter.unsqueeze(0), x_initial.unsqueeze(0))
+        loss = lossT + lossP
         loss.backward(retain_graph=False)
         optimizer.step()
         if i % div == 0:

@@ -5,7 +5,6 @@ from skimage.transform import radon, iradon, iradon_sart, resize
 from skimage.color import gray2rgb
 from skimage import io
 from scipy.io import loadmat
-from PIL import Image
 
 def noisy_zebra(
     noise_level=0.35,

@@ -11,15 +11,15 @@ from pytorch_radon import Radon, IRadon
 from data import (noisy_zebra, noisy_shepp_logan, sparse_shepp_logan, sparse_breast_phantom)
 from tool import im2tensor, plot_result, np_to_torch, torch_to_np
 from model.unet import UNet
+from model.skip import Skip
 
 INPUT_DEPTH = 32
 IMAGE_DEPTH = 3
 DEVICE = 'cuda'
 DTYPE = torch.cuda.FloatTensor
 PAD = 'reflection'
-EPOCH = 6000
+EPOCH = 8000
 LR = 0.001
-CHANNEL = 3
 reg_noise_std = 1./50
 
 div = EPOCH / 20
@@ -27,7 +27,7 @@ div = EPOCH / 20
 if __name__ == "__main__":
 
     # Init Input 
-    gt, noisy, FOCUS = sparse_shepp_logan(channel=CHANNEL)
+    gt, noisy, FOCUS = sparse_shepp_logan(channel=IMAGE_DEPTH)
     
     plt.figure(figsize=(10, 10))
     plt.imshow(np.hstack((gt, noisy)), cmap='gray')
@@ -37,11 +37,23 @@ if __name__ == "__main__":
     
 
     # Init Net
-    net = UNet(num_input_channels=INPUT_DEPTH, num_output_channels=CHANNEL,
-               feature_scale=4, more_layers=0, concat_x=False,
-               upsample_mode='bilinear', norm_layer=torch.nn.BatchNorm2d,
-               pad='reflect',
-               need_sigmoid=False, need_bias=True).to(DEVICE)
+    net = Skip(num_input_channels=INPUT_DEPTH,
+               num_output_channels=IMAGE_DEPTH,
+               upsample_mode='bilinear',
+               num_channels_down=[16, 32, 64, 256, 256], 
+               num_channels_up=[16, 32, 64, 256, 256]).to(DEVICE)
+        
+        # INPUT_DEPTH, 'skip', pad,
+        #           skip_n33d=256, 
+        #           skip_n33u=256, 
+        #           skip_n11=4, 
+        #           num_scales=5,
+        #           upsample_mode='bilinear')
+    # net = UNet(num_input_channels=INPUT_DEPTH, num_output_channels=IMAGE_DEPTH,
+    #            feature_scale=4, more_layers=0, concat_x=False,
+    #            upsample_mode='bilinear', norm_layer=torch.nn.BatchNorm2d,
+    #            pad='reflect',
+    #            need_sigmoid=False, need_bias=True).to(DEVICE)
 
     noisy_tensor = np_to_torch(noisy).type(DTYPE)
     img_gt_torch = np_to_torch(gt).type(DTYPE)

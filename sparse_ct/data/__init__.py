@@ -114,7 +114,7 @@ def sparse_image(
     channel=1,
     size=512
     ):
-    raw_img = io.imread(image_path, as_gray=gray)
+    raw_img = io.imread(image_path, as_gray=gray).astype('float') / 255
     gt = resize(pad_to_square(raw_img), (size,size))
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)

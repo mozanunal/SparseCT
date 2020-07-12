@@ -30,3 +30,4 @@ def plot_result(gt, noisy, result, FOCUS=None, show=False, save_name=None):
         plt.show()
     if save_name:
         plt.savefig(save_name)
+    plt.close()

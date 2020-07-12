@@ -8,26 +8,31 @@ from torchvision import transforms
 from pytorch_msssim import ssim, ms_ssim, SSIM, MS_SSIM
 from pytorch_radon import Radon, IRadon
 
-from data import (noisy_zebra, noisy_shepp_logan, sparse_shepp_logan, sparse_breast_phantom)
+from data import (noisy_zebra, noisy_shepp_logan, 
+                  sparse_shepp_logan, sparse_breast_phantom, sparse_image)
 from tool import im2tensor, plot_result, np_to_torch, torch_to_np
 from model.unet import UNet
 from model.skip import Skip
+import multiprocessing
 
-INPUT_DEPTH = 32
-IMAGE_DEPTH = 3
+
 DEVICE = 'cuda'
 DTYPE = torch.cuda.FloatTensor
 PAD = 'reflection'
 EPOCH = 8000
-LR = 0.001
-reg_noise_std = 1./50
+LR = 0.01
+REG_NOISE_STD = 0#1./50
+INPUT_DEPTH = 32
+IMAGE_DEPTH = 3
+IMAGE_SIZE = 512
+N_PROJ = 64
 
-div = EPOCH / 20
+div = EPOCH / 100
 
 if __name__ == "__main__":
 
     # Init Input 
-    gt, noisy, FOCUS = sparse_shepp_logan(channel=IMAGE_DEPTH)
+    gt, noisy, FOCUS = sparse_image("data/ct1.jpg", channel=IMAGE_DEPTH, n_proj=N_PROJ, size=IMAGE_SIZE )
     
     plt.figure(figsize=(10, 10))
     plt.imshow(np.hstack((gt, noisy)), cmap='gray')
@@ -40,8 +45,8 @@ if __name__ == "__main__":
     net = Skip(num_input_channels=INPUT_DEPTH,
                num_output_channels=IMAGE_DEPTH,
                upsample_mode='bilinear',
-               num_channels_down=[16, 32, 64, 256, 256], 
-               num_channels_up=[16, 32, 64, 256, 256]).to(DEVICE)
+               num_channels_down=[16, 32, 64, 128, 256], 
+               num_channels_up=[16, 32, 64, 128, 256]).to(DEVICE)
         
         # INPUT_DEPTH, 'skip', pad,
         #           skip_n33d=256, 
@@ -57,7 +62,7 @@ if __name__ == "__main__":
 
     noisy_tensor = np_to_torch(noisy).type(DTYPE)
     img_gt_torch = np_to_torch(gt).type(DTYPE)
-    net_input = torch.rand(IMAGE_DEPTH, INPUT_DEPTH, 512, 512).type(DTYPE)
+    net_input = torch.rand(IMAGE_DEPTH, INPUT_DEPTH, IMAGE_SIZE, IMAGE_SIZE).type(DTYPE)
     net_input_saved = net_input.detach().clone()
     noise = net_input.detach().clone()
 
@@ -68,9 +73,9 @@ if __name__ == "__main__":
     # Loss
     mse = torch.nn.MSELoss().to(DEVICE)
     #ssim = MS_SSIM(data_range=1.0, size_average=True, channel=IMAGE_DEPTH).to(DEVICE)
-    theta = torch.linspace(0., 180., 32)
-    r = Radon(512, theta, True)
-    ir = IRadon(512, theta, True)
+    theta = torch.linspace(0., 180., N_PROJ)
+    r = Radon(IMAGE_SIZE, theta, True)
+    ir = IRadon(IMAGE_SIZE, theta, True)
     # Optimizer
     optimizer = torch.optim.Adam(net.parameters(), lr=LR)
 
@@ -83,13 +88,14 @@ if __name__ == "__main__":
     rmse_hist = []
     ssim_hist = []
     psnr_hist = []
+    psnr_noisy_hist = []
 
     for i in range(EPOCH):
         # iter
         optimizer.zero_grad()
 
-        if reg_noise_std > 0:
-            net_input = net_input_saved + (noise.normal_() * reg_noise_std)
+        if REG_NOISE_STD > 0:
+            net_input = net_input_saved + (noise.normal_() * REG_NOISE_STD)
 
         x_iter = net(net_input)
         proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
@@ -98,24 +104,25 @@ if __name__ == "__main__":
         
         optimizer.step()
 
+        x_iter_npy = np.clip(torch_to_np(x_iter), 0, 1)
 
+        rmse_hist.append(
+            mean_squared_error(x_iter_npy, gt))
+        ssim_hist.append(
+            structural_similarity(x_iter_npy, gt, multichannel=True)
+        )
+        psnr_hist.append(
+            peak_signal_noise_ratio(x_iter_npy, gt)
+        )
+        psnr_noisy_hist.append(
+            peak_signal_noise_ratio(x_iter_npy, noisy)
+        )
+        loss_hist.append(loss.item())
+        print('{}- psnr: {:.3f} - psnr_noisy: {:.3f} - ssim: {:.3f} - rmse: {:.5f} - loss: {:.5f} '.format(
+            i, psnr_hist[-1], psnr_noisy_hist[-1], ssim_hist[-1], rmse_hist[-1], loss_hist[-1]
+        ))
         if i % div == 0:
-            x_iter_npy = np.clip(torch_to_np(x_iter), 0, 1)
-
-            rmse_hist.append(
-                mean_squared_error(x_iter_npy, gt))
-            ssim_hist.append(
-                structural_similarity(x_iter_npy, gt, multichannel=True)
-            )
-            psnr_hist.append(
-                peak_signal_noise_ratio(x_iter_npy, gt)
-            )
-
-            loss_hist.append(loss.item())
-            print('{}- psnr: {:.4f} - ssim: {:.4f} - rmse: {:.4f} - loss: {:.4f} '.format(
-                i, psnr_hist[-1], ssim_hist[-1], rmse_hist[-1], loss_hist[-1]
-            ))
-    plot_result(gt, noisy, x_iter_npy, FOCUS)
+            plot_result(gt, noisy, x_iter_npy, FOCUS, save_name='log/{}.png'.format(i))
     # Result
     plt.figure()
     plt.plot(loss_hist)

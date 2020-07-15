@@ -11,10 +11,10 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
-    fname = "../data/ct2.jpg"
+    fname = "../data/walnut.jpg"
 
 
-    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1, n_proj=64, size=512 )
+    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1, n_proj=32, size=512 )
 
     recon_fbp = IRadonReconstructor('FBP', theta)
     recon_sart = SartReconstructor('SART', theta, sart_n_iter=40, sart_relaxation=0.07)

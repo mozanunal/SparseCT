@@ -13,6 +13,7 @@ from data import (noisy_zebra, noisy_shepp_logan,
                   sparse_shepp_logan, sparse_breast_phantom, sparse_image)
 
 from loss.tv import tv_3d_l2
+from loss.perceptual import VGGPerceptualLoss
 from tool import im2tensor, plot_result, np_to_torch, torch_to_np
 from model.unet import UNet
 from model.skip import Skip
@@ -23,17 +24,17 @@ DTYPE = torch.cuda.FloatTensor
 PAD = 'reflection'
 EPOCH = 8000
 LR = 0.001
-REG_NOISE_STD = 1./30
+REG_NOISE_STD = 1./100
 INPUT_DEPTH = 32
 IMAGE_DEPTH = 3
 IMAGE_SIZE = 512
-N_PROJ = 64
+N_PROJ = 32
 
 div = 50 #EPOCH / 50
 
 if __name__ == "__main__":
 
-    fname = "data/pomegranate.jpg"
+    fname = "data/walnut.jpg"
     save_name = fname.replace("/", "").replace("data", "log/").replace(".jpg","")
     os.mkdir(save_name)
     # Init Input 
@@ -71,9 +72,10 @@ if __name__ == "__main__":
     # Loss
     mse = torch.nn.MSELoss().to(DEVICE)
     ssim = MS_SSIM(data_range=1.0, size_average=True, channel=IMAGE_DEPTH).to(DEVICE)
-    theta = torch.linspace(0., 180., N_PROJ)
-    r = Radon(IMAGE_SIZE, theta, True)
-    ir = IRadon(IMAGE_SIZE, theta, True)
+    perceptual = VGGPerceptualLoss(resize=True).to(DEVICE)
+    theta = torch.linspace(0., 180., N_PROJ).to(DEVICE)
+    r = Radon(IMAGE_SIZE, theta, True).to(DEVICE)
+    ir = IRadon(IMAGE_SIZE, theta, True).to(DEVICE)
     # Optimizer
     optimizer = torch.optim.Adam(net.parameters(), lr=LR)
 
@@ -100,10 +102,16 @@ if __name__ == "__main__":
             net_input = net_input_saved + (noise.normal_() * REG_NOISE_STD)
 
         x_iter = net(net_input)
-        ssim_l = (1 - ssim(x_iter, noisy_tensor.detach() ))
-        proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
-        tv_l = tv_3d_l2(x_iter[0])
-        loss = proj_l #+ tv_l
+
+        if i < 400:
+            percep_l = perceptual(x_iter, noisy_tensor.detach())
+            proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
+            loss = proj_l + percep_l
+        else:
+            proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
+            loss = proj_l
+        # ssim_l = (1 - ssim(x_iter, noisy_tensor.detach() ))
+        # tv_l = tv_3d_l2(x_iter[0])
         loss.backward()
         
         optimizer.step()

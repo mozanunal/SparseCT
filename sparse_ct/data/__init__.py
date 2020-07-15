@@ -113,11 +113,14 @@ def sparse_image(
     channel=1,
     size=512
 ):
-    raw_img = io.imread(image_path, as_gray=gray).astype('float')
+    raw_img = io.imread(image_path, as_gray=gray).astype('float64')
+    raw_img = raw_img / raw_img.max()
     gt = resize(pad_to_square(raw_img), (size, size))
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
-    noisy = iradon(sinogram, theta=theta)
+    noisy = None#iradon(sinogram, theta=theta)
+    for _ in range(40):
+        noisy = iradon_sart(sinogram, theta=theta, image=noisy, relaxation=0.03)
 
     def FOCUS(x):
         return x[250:350, 250:350]
@@ -144,8 +147,8 @@ def image_to_sparse_sinogram(
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
 
-    print('gt ', gt.shape, gt.max(), gt.min(), gt.dtype )
-    print('sinogram ', sinogram.shape, sinogram.max(), sinogram.min(), sinogram.dtype)
+    # print('gt ', gt.shape, gt.max(), gt.min(), gt.dtype )
+    # print('sinogram ', sinogram.shape, sinogram.max(), sinogram.min(), sinogram.dtype)
 
     def FOCUS(x):
         return x[250:350, 250:350]

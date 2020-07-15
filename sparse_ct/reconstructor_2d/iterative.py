@@ -8,6 +8,7 @@ class SartReconstructor(Reconstructor):
                  sart_n_iter=10, sart_relaxation=0.15):
         super(SartReconstructor, self).__init__(name, angles)
         self.n_iter = sart_n_iter
+        self.relaxation = sart_relaxation
         self.hist = {
             "mse": [],
             "psnr": [],
@@ -16,12 +17,14 @@ class SartReconstructor(Reconstructor):
 
     def calc(self, projs, sart_plot=False):
         image_r = iradon(projs, theta=self.angles)
+        image_r = None
         for _ in range(self.n_iter):
-            image_r = iradon_sart(projs, theta=self.angles, image=image_r)
+            image_r = iradon_sart(projs, theta=self.angles, image=image_r, relaxation=self.relaxation)
             if sart_plot:
                 plt.figure()
                 plt.imshow(image_r, cmap='gray')
-        return image_r
+        self.image_r = image_r
+        return self.image_r
 
 
 class SartTVReconstructor(Reconstructor):

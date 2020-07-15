@@ -10,5 +10,6 @@ class IRadonReconstructor(Reconstructor):
         super(IRadonReconstructor, self).__init__(name, angles)
 
     def calc(self, projs):
-        return iradon(projs, theta=self.angles)
+        self.image_r = iradon(projs, theta=self.angles)
+        return self.image_r
 

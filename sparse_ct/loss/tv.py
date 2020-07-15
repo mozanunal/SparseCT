@@ -35,7 +35,7 @@ def tv_3d_l2(img):
     z_variance = torch.sum(torch.pow(img[:, :, :-1] - img[:, :, 1:], 2))
     y_variance = torch.sum(torch.pow(img[:, :-1, :] - img[:, 1:, :], 2))
     x_variance = torch.sum(torch.pow(img[:-1, :, :] - img[1:, :, :], 2))
-    return (x_variance + y_variance + z_variance)
+    return (x_variance + y_variance + z_variance) / (3 * 512 * 512)
 
 
 def tv_3d_l1(img):

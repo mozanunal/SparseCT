@@ -114,7 +114,7 @@ def sparse_image(
     channel=1,
     size=512
     ):
-    raw_img = io.imread(image_path, as_gray=gray).astype('float') / 255
+    raw_img = io.imread(image_path, as_gray=gray).astype('float')
     gt = resize(pad_to_square(raw_img), (size,size))
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
@@ -131,7 +131,7 @@ def sparse_image(
     return gt, noisy, FOCUS
 
 if __name__ == "__main__":
-    gt,n,_ = sparse_image("data/zebra.jpg")
+    gt,n,_ = sparse_image("data/pomegranate.jpg")
     #gt,n,_ = sparse_shepp_logan("data/zebra.jpg")
     import matplotlib.pyplot as plt
 

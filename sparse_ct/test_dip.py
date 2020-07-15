@@ -1,6 +1,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 from skimage.metrics import (
     mean_squared_error, structural_similarity, peak_signal_noise_ratio)
 import torch
@@ -21,7 +22,7 @@ DTYPE = torch.cuda.FloatTensor
 PAD = 'reflection'
 EPOCH = 8000
 LR = 0.001
-REG_NOISE_STD = 0#1./50
+REG_NOISE_STD = 1./50
 INPUT_DEPTH = 32
 IMAGE_DEPTH = 3
 IMAGE_SIZE = 512
@@ -31,8 +32,11 @@ div = EPOCH / 100
 
 if __name__ == "__main__":
 
+    fname = "data/circular1.jpg"
+    save_name = fname.replace("/", "").replace("data", "log/").replace(".jpg","")
+    os.mkdir(save_name)
     # Init Input 
-    gt, noisy, FOCUS = sparse_image("data/ct1.jpg", channel=IMAGE_DEPTH, n_proj=N_PROJ, size=IMAGE_SIZE )
+    gt, noisy, FOCUS = sparse_image(fname, channel=IMAGE_DEPTH, n_proj=N_PROJ, size=IMAGE_SIZE )
     
     plt.figure(figsize=(10, 10))
     plt.imshow(np.hstack((gt, noisy)), cmap='gray')
@@ -44,16 +48,9 @@ if __name__ == "__main__":
     # Init Net
     net = Skip(num_input_channels=INPUT_DEPTH,
                num_output_channels=IMAGE_DEPTH,
-               upsample_mode='bilinear',
+               upsample_mode='nearest',
                num_channels_down=[16, 32, 64, 128, 256], 
                num_channels_up=[16, 32, 64, 128, 256]).to(DEVICE)
-        
-    # INPUT_DEPTH, 'skip', pad,
-    #           skip_n33d=256, 
-    #           skip_n33u=256, 
-    #           skip_n11=4, 
-    #           num_scales=5,
-    #           upsample_mode='bilinear')
     # net = UNet(num_input_channels=INPUT_DEPTH, num_output_channels=IMAGE_DEPTH,
     #            feature_scale=4, more_layers=0, concat_x=False,
     #            upsample_mode='bilinear', norm_layer=torch.nn.BatchNorm2d,
@@ -140,7 +137,7 @@ if __name__ == "__main__":
                 best_network = [x.detach().cpu() for x in net.parameters()]        
 
         if i % div == 0:
-            plot_result(gt, noisy, x_iter_npy, FOCUS, save_name='log/{}.png'.format(i))
+            plot_result(gt, noisy, x_iter_npy, FOCUS, save_name= save_name+'/{}.png'.format(i))
     # Result
     plt.figure()
     plt.plot(loss_hist)

@@ -34,7 +34,7 @@ div = 50 #EPOCH / 50
 
 if __name__ == "__main__":
 
-    fname = "data/walnut.jpg"
+    fname = "data/ct1.jpg"
     save_name = fname.replace("/", "").replace("data", "log/").replace(".jpg","")
     os.mkdir(save_name)
     # Init Input 
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
         x_iter = net(net_input)
 
-        if i < 400:
+        if i < 100:
             percep_l = perceptual(x_iter, noisy_tensor.detach())
             proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
             loss = proj_l + percep_l

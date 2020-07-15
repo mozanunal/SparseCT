@@ -15,20 +15,19 @@ def pad_to_square(img):
     if delta_h != 0:
         h, w = img.shape
         img = np.vstack([
-            np.zeros((delta_h//2,w)),
+            np.zeros((delta_h//2, w)),
             img,
-            np.zeros((delta_h//2,w))
+            np.zeros((delta_h//2, w))
         ])
     if delta_w != 0:
         h, w = img.shape
         img = np.hstack([
-            np.zeros((h,delta_w//2)),
+            np.zeros((h, delta_w//2)),
             img,
-            np.zeros((h,delta_w//2))
+            np.zeros((h, delta_w//2))
         ])
     return img
-            
-    
+
 
 def noisy_zebra(
     noise_level=0.35,
@@ -58,7 +57,6 @@ def noisy_shepp_logan(
     return gt, noisy, FOCUS
 
 
-
 def sparse_shepp_logan(
     noise_level=0.35,
     gray=True,
@@ -76,12 +74,12 @@ def sparse_shepp_logan(
     def FOCUS(x):
         return x[350:450, 200:300]
 
-
     if channel == 3:
         noisy = gray2rgb(noisy)
         gt = gray2rgb(gt)
 
     return gt, noisy, FOCUS
+
 
 def sparse_breast_phantom(
     noise_level=0.35,
@@ -92,12 +90,13 @@ def sparse_breast_phantom(
     channel=1,
 ):
     gt = loadmat('data/bp-160u-dense.mat')['data'][300]
-    gt = resize(gt, (316,316)).astype('float')
+    gt = resize(gt, (316, 316)).astype('float')
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
     noisy = iradon(sinogram, theta=theta)
-    noisy = resize(noisy, (316,316)).astype('float')
+    noisy = resize(noisy, (316, 316)).astype('float')
     print(noisy.shape, gt.shape)
+
     def FOCUS(x):
         return x[175:275, 75:175]
 
@@ -113,9 +112,9 @@ def sparse_image(
     angle2=180.0,
     channel=1,
     size=512
-    ):
+):
     raw_img = io.imread(image_path, as_gray=gray).astype('float')
-    gt = resize(pad_to_square(raw_img), (size,size))
+    gt = resize(pad_to_square(raw_img), (size, size))
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
     noisy = iradon(sinogram, theta=theta)
@@ -123,15 +122,42 @@ def sparse_image(
     def FOCUS(x):
         return x[250:350, 250:350]
 
-
     if channel == 3:
         noisy = gray2rgb(noisy)
         gt = gray2rgb(gt)
 
     return gt, noisy, FOCUS
 
+def image_to_sparse_sinogram(
+    image_path,
+    noise_level=0.25,
+    gray=True,
+    n_proj=128,
+    angle1=0.0,
+    angle2=180.0,
+    channel=1,
+    size=512
+):
+    raw_img = io.imread(image_path, as_gray=gray).astype('float64')
+    raw_img = raw_img / raw_img.max() # map [0,1]
+    gt = resize(pad_to_square(raw_img), (size, size))
+    theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
+    sinogram = radon(gt, theta=theta, circle=True)
+
+    print('gt ', gt.shape, gt.max(), gt.min(), gt.dtype )
+    print('sinogram ', sinogram.shape, sinogram.max(), sinogram.min(), sinogram.dtype)
+
+    def FOCUS(x):
+        return x[250:350, 250:350]
+
+    if channel == 3:
+        gt = gray2rgb(gt)
+
+    return gt, sinogram, theta, FOCUS
+
+
 if __name__ == "__main__":
-    gt,n,_ = sparse_image("data/pomegranate.jpg")
+    gt, n, _ = sparse_image("data/pomegranate.jpg")
     #gt,n,_ = sparse_shepp_logan("data/zebra.jpg")
     import matplotlib.pyplot as plt
 
@@ -139,6 +165,3 @@ if __name__ == "__main__":
     plt.show()
     plt.imshow(n, cmap='gray')
     plt.show()
-
-
-

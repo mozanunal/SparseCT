@@ -151,7 +151,7 @@ def image_to_sparse_sinogram(
     # print('sinogram ', sinogram.shape, sinogram.max(), sinogram.min(), sinogram.dtype)
 
     def FOCUS(x):
-        return x[250:350, 250:350]
+        return x[200:350, 200:350]
 
     if channel == 3:
         gt = gray2rgb(gt)

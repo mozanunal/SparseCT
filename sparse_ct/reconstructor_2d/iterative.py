@@ -1,4 +1,5 @@
 
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 from skimage.transform import iradon, iradon_sart
 from .base import Reconstructor
@@ -18,7 +19,8 @@ class SartReconstructor(Reconstructor):
     def calc(self, projs, sart_plot=False):
         image_r = iradon(projs, theta=self.angles)
         image_r = None
-        for _ in range(self.n_iter):
+        print('Reconstructing...', self.name)
+        for _ in tqdm(range(self.n_iter)):
             image_r = iradon_sart(projs, theta=self.angles, image=image_r, relaxation=self.relaxation)
             if sart_plot:
                 plt.figure()

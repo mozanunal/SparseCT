@@ -14,7 +14,7 @@ from pytorch_radon import Radon, IRadon
 
 from tqdm import tqdm
 from .base import Reconstructor
-from sparse_ct.loss.tv import tv_3d_l2
+from sparse_ct.loss.tv import tv_2d_l2
 from sparse_ct.loss.perceptual import VGGPerceptualLoss
 from sparse_ct.tool import im2tensor, plot_result, np_to_torch, torch_to_np
 from sparse_ct.model.unet import UNet
@@ -28,7 +28,9 @@ LR = 0.001
 INPUT_DEPTH = 32
 IMAGE_DEPTH = 3
 IMAGE_SIZE = 512
-N_PROJ = 32
+N_PROJ = 64
+ANGLE1 = 20.
+ANGLE2 = 160.
 div = 50 #EPOCH / 50
 
 def _FOCUS(img):
@@ -37,18 +39,22 @@ def _FOCUS(img):
 class DipReconstructor(Reconstructor):
     def __init__(self, name, angles,
         dip_n_iter=8000, net='skip',
-        lr=0.001, reg_std=1./100):
+        lr=0.001, reg_std=1./100,
+         w_proj_loss=0.3, w_perceptual_loss=0.33, w_tv_loss=0.33):
         super(DipReconstructor, self).__init__(name, angles)
         self.n_iter = dip_n_iter
         assert net in ['skip', 'unet']
         self.net = net
         self.lr = lr
         self.reg_std = reg_std
+        self.w_proj_loss = w_proj_loss
+        self.w_perceptual_loss = w_perceptual_loss
+        self.w_tv_loss = w_tv_loss
         self.gt = None
         self.noisy = None
         self.FOCUS = None
         self.log_dir = None
-
+ 
     def set_for_metric(self, gt, dip_initial, 
                       FOCUS=None,
                       log_dir='log/dip'):
@@ -61,9 +67,10 @@ class DipReconstructor(Reconstructor):
         self.FOCUS = FOCUS
         self.log_dir = log_dir
 
-    def calc(self, projs):      
+    def calc(self, projs):
+        if not os.path.exists(self.log_dir):
+            os.mkdir(self.log_dir)
 
-        os.mkdir(self.log_dir)
         net = self._get_net()
 
         noisy_tensor = np_to_torch(self.noisy).type(DTYPE)
@@ -80,12 +87,12 @@ class DipReconstructor(Reconstructor):
         mse = torch.nn.MSELoss().to(DEVICE)
         ssim = MS_SSIM(data_range=1.0, size_average=True, channel=IMAGE_DEPTH).to(DEVICE)
         perceptual = VGGPerceptualLoss(resize=True).to(DEVICE)
-        theta = torch.linspace(0., 180., N_PROJ).to(DEVICE)
+        theta = torch.linspace(ANGLE1, ANGLE2, N_PROJ).to(DEVICE)
         r = Radon(IMAGE_SIZE, theta, True).to(DEVICE)
         ir = IRadon(IMAGE_SIZE, theta, True).to(DEVICE)
         # Optimizer
         optimizer = torch.optim.Adam(net.parameters(), lr=self.lr)
-
+        cur_lr = self.lr
         projs = r(img_gt_torch).detach().clone()
         norm = transforms.Normalize(projs[0].mean((1,2)), projs[0].std((1,2)))
         print(noisy_tensor.shape, net_input.shape, projs.shape)
@@ -109,15 +116,24 @@ class DipReconstructor(Reconstructor):
 
             x_iter = net(net_input)
 
-            if i < 100:
-                percep_l = perceptual(x_iter, noisy_tensor.detach())
-                proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
-                loss = proj_l + percep_l
-            else:
-                proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
-                loss = proj_l
+            # if i < 100:
+            #     percep_l = perceptual(x_iter, noisy_tensor.detach())
+            #     proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
+            #     loss = proj_l + percep_l
+            # else:
+            if True:
+                percep_l = 0
+                proj_l = 0
+                tv_l = 0
+                if self.w_perceptual_loss > 0.0:
+                    percep_l = perceptual(x_iter, noisy_tensor.detach())
+                if self.w_proj_loss > 0.0:
+                    proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
+                if self.w_tv_loss > 0.0:
+                    tv_l = tv_2d_l2(x_iter[0].mean(axis=0))
+                loss = self.w_proj_loss* proj_l + self.w_perceptual_loss * percep_l + self.w_tv_loss * tv_l
             # ssim_l = (1 - ssim(x_iter, noisy_tensor.detach() ))
-            # tv_l = tv_3d_l2(x_iter[0])
+            
             loss.backward()
             
             optimizer.step()
@@ -144,8 +160,10 @@ class DipReconstructor(Reconstructor):
 
                 if psnr_noisy_hist[-1] / max(psnr_noisy_hist) < 0.92:
                     print('Falling back to previous checkpoint.')
-                    optimizer.lr = optimizer.lr / 2
-                    print("optimizer.lr", optimizer.lr)
+                    for g in optimizer.param_groups:
+                        g['lr'] = cur_lr / 10.0
+                    cur_lr = cur_lr / 10.0
+                    print("optimizer.lr", cur_lr)
                     # load network
                     for new_param, net_param in zip(best_network, net.parameters()):
                         net_param.data.copy_(new_param.cuda())

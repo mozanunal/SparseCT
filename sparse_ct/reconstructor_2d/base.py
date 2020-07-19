@@ -19,6 +19,14 @@ class Reconstructor(object):
             peak_signal_noise_ratio(gt,self.image_r),
             structural_similarity(gt,self.image_r)
         )
+    
+    def save_result(self):
+        assert self.image_r is not None
+        np.save(
+            "{}.npy".format(self.name),
+            self.image_r
+            )
+
         
 
     def calc(self):

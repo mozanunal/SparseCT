@@ -101,6 +101,7 @@ class DipReconstructor(Reconstructor):
         psnr_hist = []
         psnr_noisy_hist = []
         best_network = None
+        best_result = None
 
         print('Reconstructing with DIP...')
         for i in tqdm(range(self.n_iter)):
@@ -126,7 +127,7 @@ class DipReconstructor(Reconstructor):
                 if self.w_proj_loss > 0.0:
                     proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
                 if self.w_tv_loss > 0.0:
-                    tv_l = tv_2d_l2(x_iter[0].mean(axis=0))
+                    tv_l = tv_2d_l2(x_iter[0,0])
                 loss = self.w_proj_loss* proj_l + self.w_perceptual_loss * percep_l + self.w_tv_loss * tv_l
             # ssim_l = (1 - ssim(x_iter, noisy_tensor.detach() ))
             
@@ -137,6 +138,10 @@ class DipReconstructor(Reconstructor):
             # metric
             if i % div == 0:
                 x_iter_npy = np.clip(torch_to_np(x_iter), 0, 1)
+
+                if loss.item() < min(loss_hist):
+                    print('new best')
+                    best_result = x_iter_npy.copy()
 
                 rmse_hist.append(
                     mean_squared_error(x_iter_npy, self.gt))
@@ -170,7 +175,7 @@ class DipReconstructor(Reconstructor):
                         best_network = [x.detach().cpu() for x in net.parameters()]        
                 plot_result(self.gt, self.noisy, x_iter_npy, self.FOCUS, save_name=self.log_dir+'/{}.png'.format(i))
 
-        self.image_r = x_iter_npy
+        self.image_r = best_result
         return self.image_r
 
 

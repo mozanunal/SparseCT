@@ -13,22 +13,22 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
-    fname = "../data/walnut.jpg"
+    fname = "../data/shepp_logan.jpg"
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
-            n_proj=64, size=512, angle1=20.0, angle2=160.0 )
+            n_proj=32, size=512, angle1=0.0, angle2=180.0 )
 
     recon_fbp = IRadonReconstructor('FBP', theta)
-    recon_sart = SartReconstructor('SART', theta, sart_n_iter=40, sart_relaxation=0.02)
+    recon_sart = SartReconstructor('SART', theta, sart_n_iter=4, sart_relaxation=0.02)
     recon_dip = DipReconstructor('DIP', theta, 
-                                dip_n_iter=4000, 
+                                dip_n_iter=8000, 
                                 net='skip',
-                                lr=0.01,
-                                reg_std=0.02,
+                                lr=0.001,
+                                reg_std=1./100,
                                 w_proj_loss=1.0,
                                 w_perceptual_loss=0.0,
-                                w_tv_loss=1.0
+                                w_tv_loss=0.0
                             )
     img_fbp = recon_fbp.calc(sinogram)
     img_sart = recon_sart.calc(sinogram)

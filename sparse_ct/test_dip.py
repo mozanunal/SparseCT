@@ -34,11 +34,11 @@ div = 50 #EPOCH / 50
 
 if __name__ == "__main__":
 
-    fname = "data/ct1.jpg"
+    fname = "data/sl.jpg"
     save_name = fname.replace("/", "").replace("data", "log/").replace(".jpg","")
     os.mkdir(save_name)
     # Init Input 
-    gt, noisy, FOCUS = sparse_image(fname, channel=IMAGE_DEPTH, n_proj=N_PROJ, size=IMAGE_SIZE )
+    gt, noisy, FOCUS = sparse_shepp_logan(fname, channel=IMAGE_DEPTH, n_proj=N_PROJ, size=IMAGE_SIZE )
     
     plt.figure(figsize=(10, 10))
     plt.imshow(np.hstack((gt, noisy)), cmap='gray')

@@ -24,13 +24,12 @@ from sparse_ct.model.skip import Skip
 DEVICE = 'cuda'
 DTYPE = torch.cuda.FloatTensor
 EPOCH = 8000
-LR = 0.001
 INPUT_DEPTH = 32
-IMAGE_DEPTH = 3
+IMAGE_DEPTH = 1
 IMAGE_SIZE = 512
-N_PROJ = 64
-ANGLE1 = 20.
-ANGLE2 = 160.
+N_PROJ = 32
+ANGLE1 = 0.
+ANGLE2 = 180.
 div = 50 #EPOCH / 50
 
 def _FOCUS(img):
@@ -58,10 +57,9 @@ class DipReconstructor(Reconstructor):
     def set_for_metric(self, gt, dip_initial, 
                       FOCUS=None,
                       log_dir='log/dip'):
-        if len(gt.shape) == 2:
-            gt = gray2rgb(gt)
-        if len(dip_initial.shape) == 2:
-            dip_initial = gray2rgb(dip_initial)
+        assert len(gt.shape) == 2
+        assert len(dip_initial.shape) == 2
+        print
         self.gt = gt
         self.noisy = dip_initial
         self.FOCUS = FOCUS
@@ -116,12 +114,11 @@ class DipReconstructor(Reconstructor):
 
             x_iter = net(net_input)
 
-            # if i < 100:
-            #     percep_l = perceptual(x_iter, noisy_tensor.detach())
-            #     proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
-            #     loss = proj_l + percep_l
-            # else:
-            if True:
+            if i < 100:
+                percep_l = perceptual(x_iter, noisy_tensor.detach())
+                proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
+                loss = proj_l + percep_l
+            else:
                 percep_l = 0
                 proj_l = 0
                 tv_l = 0
@@ -174,8 +171,8 @@ class DipReconstructor(Reconstructor):
                         best_network = [x.detach().cpu() for x in net.parameters()]        
                 plot_result(self.gt, self.noisy, x_iter_npy, self.FOCUS, save_name=self.log_dir+'/{}.png'.format(i))
 
-        self.image_r = rgb2gray(x_iter_npy)
-        return rgb2gray(x_iter_npy)
+        self.image_r = x_iter_npy
+        return self.image_r
 
 
     def _get_net(self):

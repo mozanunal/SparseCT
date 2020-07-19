@@ -59,7 +59,6 @@ class DipReconstructor(Reconstructor):
                       log_dir='log/dip'):
         assert len(gt.shape) == 2
         assert len(dip_initial.shape) == 2
-        print
         self.gt = gt
         self.noisy = dip_initial
         self.FOCUS = FOCUS
@@ -151,19 +150,19 @@ class DipReconstructor(Reconstructor):
                     peak_signal_noise_ratio(x_iter_npy, self.noisy)
                 )
                 loss_hist.append(loss.item())
-                print('{}- psnr: {:.3f} - psnr_noisy: {:.3f} - ssim: {:.3f} - rmse: {:.5f} - loss: {:.5f} '.format(
-                    i, psnr_hist[-1], psnr_noisy_hist[-1], ssim_hist[-1], rmse_hist[-1], loss_hist[-1]
+                print('{}/{}- psnr: {:.3f} - psnr_noisy: {:.3f} - ssim: {:.3f} - rmse: {:.5f} - loss: {:.5f} '.format(
+                    self.name, i, psnr_hist[-1], psnr_noisy_hist[-1], ssim_hist[-1], rmse_hist[-1], loss_hist[-1]
                 ))
 
-                if psnr_noisy_hist[-1] / max(psnr_noisy_hist) < 0.92:
-                    print('Falling back to previous checkpoint.')
-                    for g in optimizer.param_groups:
-                        g['lr'] = cur_lr / 10.0
-                    cur_lr = cur_lr / 10.0
-                    print("optimizer.lr", cur_lr)
-                    # load network
-                    for new_param, net_param in zip(best_network, net.parameters()):
-                        net_param.data.copy_(new_param.cuda())
+                # if psnr_noisy_hist[-1] / max(psnr_noisy_hist) < 0.92:
+                #     print('Falling back to previous checkpoint.')
+                #     for g in optimizer.param_groups:
+                #         g['lr'] = cur_lr / 10.0
+                #     cur_lr = cur_lr / 10.0
+                #     print("optimizer.lr", cur_lr)
+                #     # load network
+                #     for new_param, net_param in zip(best_network, net.parameters()):
+                #         net_param.data.copy_(new_param.cuda())
 
                 if i > 2:
                     if loss_hist[-1] < min(loss_hist[0:-1]):

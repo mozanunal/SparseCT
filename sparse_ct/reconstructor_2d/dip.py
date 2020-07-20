@@ -1,5 +1,7 @@
 
 
+
+import random
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -21,36 +23,44 @@ from sparse_ct.model.unet import UNet
 from sparse_ct.model.skip import Skip
 
 
-DEVICE = 'cuda'
-DTYPE = torch.cuda.FloatTensor
-EPOCH = 8000
-INPUT_DEPTH = 32
-IMAGE_DEPTH = 1
-IMAGE_SIZE = 512
-N_PROJ = 32
-ANGLE1 = 0.
-ANGLE2 = 180.
-div = 50 #EPOCH / 50
-
 def _FOCUS(img):
     return img[300:450,200:350]
 
 class DipReconstructor(Reconstructor):
+    DEVICE = 'cuda'
+    DTYPE = torch.cuda.FloatTensor
+    INPUT_DEPTH = 32
+    IMAGE_DEPTH = 1
+    IMAGE_SIZE = 512
+    N_PROJ = 32
+    ANGLE1 = 0.
+    ANGLE2 = 180.
+    SHOW_EVERY = 50
+
     def __init__(self, name, angles,
         dip_n_iter=8000, net='skip',
         lr=0.001, reg_std=1./100,
          w_proj_loss=1.0, w_perceptual_loss=0.0, 
-         w_ssim_loss=0.0, w_tv_loss=0.0):
+         w_ssim_loss=0.0, w_tv_loss=0.0, randomize_projs=None):
         super(DipReconstructor, self).__init__(name, angles)
         self.n_iter = dip_n_iter
         assert net in ['skip', 'unet']
         self.net = net
         self.lr = lr
         self.reg_std = reg_std
+        # loss weights
         self.w_proj_loss = w_proj_loss
         self.w_perceptual_loss = w_perceptual_loss
         self.w_tv_loss = w_tv_loss
         self.w_ssim_loss = w_ssim_loss
+        self.randomize_projs = None
+        # loss functions
+        self.mse = torch.nn.MSELoss().to(self.DEVICE)
+        self.ssim = MS_SSIM(data_range=1.0, size_average=True, channel=self.IMAGE_DEPTH).to(self.DEVICE)
+        self.perceptual = VGGPerceptualLoss(resize=True).to(self.DEVICE)
+        self.theta = torch.linspace(self.ANGLE1, self.ANGLE2, self.N_PROJ).to(self.DEVICE)
+        self.radon = Radon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
+        self.iradon = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
         self.gt = None
         self.noisy = None
         self.FOCUS = None
@@ -66,15 +76,49 @@ class DipReconstructor(Reconstructor):
         self.FOCUS = FOCUS
         self.log_dir = log_dir
 
+    def _calc_loss(self, x_iter, projs, x_initial):
+        norm = transforms.Normalize(projs[0].mean((1,2)), projs[0].std((1,2)))
+        percep_l = 0
+        proj_l = 0
+        tv_l = 0
+        ssim_l = 0
+        if self.w_perceptual_loss > 0.0:
+            percep_l = self.w_perceptual_loss * self.perceptual(x_iter, x_initial.detach())
+        if self.w_proj_loss > 0.0:
+            if self.randomize_projs:
+                samples = random.sample(
+                    [i for i in range(self.N_PROJ) ], 
+                    int(self.randomize_projs*self.N_PROJ)
+                )
+                samples.sort()
+                radon_ = Radon(self.IMAGE_SIZE, theta=self.theta[samples], circle=True)
+                proj_l = self.w_proj_loss * \
+                    self.mse(norm(radon_(x_iter)[0]), 
+                             norm(projs[0,0,:,samples]))
+            else:
+                proj_l = self.w_proj_loss * self.mse(norm(self.radon(x_iter)[0]), norm(projs[0]))
+        if self.w_tv_loss > 0.0:
+            tv_l = self.w_tv_loss * tv_2d_l2(x_iter[0,0])
+        if self.w_ssim_loss > 0.0:
+            ssim_l = self.w_ssim_loss * (1 - self.ssim(x_iter, x_initial.detach() ))
+        return proj_l +  percep_l +  tv_l + ssim_l
+
+    def _calc_start_loss(self, x_iter, projs, x_initial):
+        norm = transforms.Normalize(projs[0].mean((1,2)), projs[0].std((1,2)))
+        percep_l = self.perceptual(x_iter, x_initial.detach())
+        proj_l = self.mse(norm(self.radon(x_iter)[0]), norm(projs[0]))
+        return proj_l + percep_l
+
     def calc(self, projs):
         if not os.path.exists(self.log_dir):
             os.mkdir(self.log_dir)
 
         net = self._get_net()
 
-        noisy_tensor = np_to_torch(self.noisy).type(DTYPE)
-        img_gt_torch = np_to_torch(self.gt).type(DTYPE)
-        net_input = torch.rand(1, INPUT_DEPTH, IMAGE_SIZE, IMAGE_SIZE).type(DTYPE)
+        x_initial = np_to_torch(self.noisy).type(self.DTYPE)
+        img_gt_torch = np_to_torch(self.gt).type(self.DTYPE)
+        net_input = torch.rand(1, self.INPUT_DEPTH, 
+                    self.IMAGE_SIZE, self.IMAGE_SIZE).type(self.DTYPE)
         net_input_saved = net_input.detach().clone()
         noise = net_input.detach().clone()
 
@@ -82,19 +126,12 @@ class DipReconstructor(Reconstructor):
         s  = sum([np.prod(list(p.size())) for p in net.parameters()]); 
         print ('Number of params: %d' % s)
 
-        # Loss
-        mse = torch.nn.MSELoss().to(DEVICE)
-        ssim = MS_SSIM(data_range=1.0, size_average=True, channel=IMAGE_DEPTH).to(DEVICE)
-        perceptual = VGGPerceptualLoss(resize=True).to(DEVICE)
-        theta = torch.linspace(ANGLE1, ANGLE2, N_PROJ).to(DEVICE)
-        r = Radon(IMAGE_SIZE, theta, True).to(DEVICE)
-        ir = IRadon(IMAGE_SIZE, theta, True).to(DEVICE)
         # Optimizer
         optimizer = torch.optim.Adam(net.parameters(), lr=self.lr)
         cur_lr = self.lr
-        projs = r(img_gt_torch).detach().clone()
-        norm = transforms.Normalize(projs[0].mean((1,2)), projs[0].std((1,2)))
-        print(noisy_tensor.shape, net_input.shape, projs.shape)
+        projs = self.radon(img_gt_torch).detach().clone()
+        
+        print(x_initial.shape, net_input.shape, projs.shape)
 
         # Iterations
         loss_hist = []
@@ -117,29 +154,16 @@ class DipReconstructor(Reconstructor):
             x_iter = net(net_input)
 
             if i < 100:
-                percep_l = perceptual(x_iter, noisy_tensor.detach())
-                proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
-                loss = proj_l + percep_l
+                loss = self._calc_start_loss(x_iter, projs, x_initial)
             else:
-                percep_l = 0
-                proj_l = 0
-                tv_l = 0
-                if self.w_perceptual_loss > 0.0:
-                    percep_l = self.w_perceptual_loss * perceptual(x_iter, noisy_tensor.detach())
-                if self.w_proj_loss > 0.0:
-                    proj_l = self.w_proj_loss * mse(norm(r(x_iter)[0]), norm(projs[0]))
-                if self.w_tv_loss > 0.0:
-                    tv_l = self.w_tv_loss * tv_2d_l2(x_iter[0,0])
-                if self.w_ssim_loss > 0.0:
-                    ssim_l = self.w_ssim_loss * (1 - ssim(x_iter, noisy_tensor.detach() ))
-                loss =  proj_l +  percep_l +  tv_l + ssim_l
+                loss = self._calc_loss(x_iter, projs, x_initial)
             
             loss.backward()
             
             optimizer.step()
 
             # metric
-            if i % div == 0:
+            if i % self.SHOW_EVERY == 0:
                 x_iter_npy = np.clip(torch_to_np(x_iter), 0, 1)
 
                 rmse_hist.append(
@@ -178,20 +202,19 @@ class DipReconstructor(Reconstructor):
         self.image_r = best_result
         return self.image_r
 
-
     def _get_net(self):
         # Init Net
         if self.net == 'skip':
-            return Skip(num_input_channels=INPUT_DEPTH,
-                num_output_channels=IMAGE_DEPTH,
+            return Skip(num_input_channels=self.INPUT_DEPTH,
+                num_output_channels=self.IMAGE_DEPTH,
                 upsample_mode='nearest',
                 num_channels_down=[16, 32, 64, 128, 256], 
-                num_channels_up=[16, 32, 64, 128, 256]).to(DEVICE)
+                num_channels_up=[16, 32, 64, 128, 256]).to(self.DEVICE)
         elif self.net == 'unet':
-            return UNet(num_input_channels=INPUT_DEPTH, num_output_channels=IMAGE_DEPTH,
+            return UNet(num_input_channels=self.INPUT_DEPTH, num_output_channels=self.IMAGE_DEPTH,
                     feature_scale=4, more_layers=0, concat_x=False,
                     upsample_mode='bilinear', norm_layer=torch.nn.BatchNorm2d,
                     pad='reflect',
-                    need_sigmoid=False, need_bias=True).to(DEVICE)
+                    need_sigmoid=False, need_bias=True).to(self.DEVICE)
         else:
             assert False

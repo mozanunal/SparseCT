@@ -139,10 +139,6 @@ class DipReconstructor(Reconstructor):
             if i % div == 0:
                 x_iter_npy = np.clip(torch_to_np(x_iter), 0, 1)
 
-                if loss.item() < min(loss_hist):
-                    print('new best')
-                    best_result = x_iter_npy.copy()
-
                 rmse_hist.append(
                     mean_squared_error(x_iter_npy, self.gt))
                 ssim_hist.append(
@@ -172,7 +168,8 @@ class DipReconstructor(Reconstructor):
                 if i > 2:
                     if loss_hist[-1] < min(loss_hist[0:-1]):
                         # save network
-                        best_network = [x.detach().cpu() for x in net.parameters()]        
+                        best_network = [x.detach().cpu() for x in net.parameters()]
+                        best_result = x_iter_npy.copy() 
                 plot_result(self.gt, self.noisy, x_iter_npy, self.FOCUS, save_name=self.log_dir+'/{}.png'.format(i))
 
         self.image_r = best_result

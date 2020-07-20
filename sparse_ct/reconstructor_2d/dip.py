@@ -53,7 +53,7 @@ class DipReconstructor(Reconstructor):
         self.w_perceptual_loss = w_perceptual_loss
         self.w_tv_loss = w_tv_loss
         self.w_ssim_loss = w_ssim_loss
-        self.randomize_projs = None
+        self.randomize_projs = randomize_projs
         # loss functions
         self.mse = torch.nn.MSELoss().to(self.DEVICE)
         self.ssim = MS_SSIM(data_range=1.0, size_average=True, channel=self.IMAGE_DEPTH).to(self.DEVICE)
@@ -94,7 +94,8 @@ class DipReconstructor(Reconstructor):
                 radon_ = Radon(self.IMAGE_SIZE, theta=self.theta[samples], circle=True)
                 proj_l = self.w_proj_loss * \
                     self.mse(norm(radon_(x_iter)[0]), 
-                             norm(projs[0,0,:,samples]))
+                             norm(projs[0,:,:,samples]))
+
             else:
                 proj_l = self.w_proj_loss * self.mse(norm(self.radon(x_iter)[0]), norm(projs[0]))
         if self.w_tv_loss > 0.0:

@@ -120,7 +120,7 @@ def test(fname, label):
     plot_grid([gt, img_fbp, img_sart, img_dip1, 
                    img_dip2, img_dip3, img_dip4,
                    img_dip5, img_dip6, img_dip7],
-            FOCUS=FOCUS, save_name=label+'.png', dpi=2000)
+            FOCUS=FOCUS, save_name=label+'.png', dpi=300)
             
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ if __name__ == "__main__":
     recon_dip = DipReconstructor('DIP', theta, 
                                 dip_n_iter=8000, 
                                 net='skip',
-                                lr=0.001,
+                                lr=0.01,
                                 reg_std=1./100,
                                 w_proj_loss=1.0,
                                 w_perceptual_loss=0.0,
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     recon_dip_rand = DipReconstructor('DIP_RAND', theta, 
                                 dip_n_iter=8000, 
                                 net='skip',
-                                lr=0.001,
+                                lr=0.01,
                                 reg_std=1./100,
                                 w_proj_loss=1.0,
                                 w_perceptual_loss=0.0,
@@ -55,5 +55,5 @@ if __name__ == "__main__":
         ))
 
     plot_grid([gt, img_fbp, img_sart, img_dip, img_dip_rand],
-            FOCUS=FOCUS, dpi=1000)
+            FOCUS=FOCUS, save_name='all.png', dpi=500)
             

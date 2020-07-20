@@ -39,7 +39,8 @@ class DipReconstructor(Reconstructor):
     def __init__(self, name, angles,
         dip_n_iter=8000, net='skip',
         lr=0.001, reg_std=1./100,
-         w_proj_loss=0.3, w_perceptual_loss=0.33, w_tv_loss=0.33):
+         w_proj_loss=1.0, w_perceptual_loss=0.0, 
+         w_ssim_loss=0.0, w_tv_loss=0.0):
         super(DipReconstructor, self).__init__(name, angles)
         self.n_iter = dip_n_iter
         assert net in ['skip', 'unet']
@@ -49,6 +50,7 @@ class DipReconstructor(Reconstructor):
         self.w_proj_loss = w_proj_loss
         self.w_perceptual_loss = w_perceptual_loss
         self.w_tv_loss = w_tv_loss
+        self.w_ssim_loss = w_ssim_loss
         self.gt = None
         self.noisy = None
         self.FOCUS = None
@@ -123,13 +125,14 @@ class DipReconstructor(Reconstructor):
                 proj_l = 0
                 tv_l = 0
                 if self.w_perceptual_loss > 0.0:
-                    percep_l = perceptual(x_iter, noisy_tensor.detach())
+                    percep_l = self.w_perceptual_loss * perceptual(x_iter, noisy_tensor.detach())
                 if self.w_proj_loss > 0.0:
-                    proj_l = mse(norm(r(x_iter)[0]), norm(projs[0]))
+                    proj_l = self.w_proj_loss * mse(norm(r(x_iter)[0]), norm(projs[0]))
                 if self.w_tv_loss > 0.0:
-                    tv_l = tv_2d_l2(x_iter[0,0])
-                loss = self.w_proj_loss* proj_l + self.w_perceptual_loss * percep_l + self.w_tv_loss * tv_l
-            # ssim_l = (1 - ssim(x_iter, noisy_tensor.detach() ))
+                    tv_l = self.w_tv_loss * tv_2d_l2(x_iter[0,0])
+                if self.w_ssim_loss > 0.0:
+                    ssim_l = self.w_ssim_loss * (1 - ssim(x_iter, noisy_tensor.detach() ))
+                loss =  proj_l +  percep_l +  tv_l + ssim_l
             
             loss.backward()
             

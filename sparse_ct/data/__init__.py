@@ -6,6 +6,16 @@ from skimage.color import gray2rgb
 from skimage import io
 from scipy.io import loadmat
 
+def db2ratio(db):
+    """
+    db=10*log(ratio)
+    ratio=10**(db/10)
+    """
+    return 10**(db/10)
+
+def awgn(x, noise_pow):
+    k = db2ratio(noise_pow)
+    return x + np.random.normal(0, x.mean()/k, x.shape ) 
 
 def pad_to_square(img):
     size_big = max(img.shape)+0
@@ -139,7 +149,8 @@ def image_to_sparse_sinogram(
     angle1=0.0,
     angle2=180.0,
     channel=1,
-    size=512
+    size=512,
+    noise_pow=15.0
 ):
     raw_img = io.imread(image_path, as_gray=gray).astype('float64')
     raw_img = raw_img / raw_img.max() # map [0,1]
@@ -149,7 +160,7 @@ def image_to_sparse_sinogram(
 
     # print('gt ', gt.shape, gt.max(), gt.min(), gt.dtype )
     # print('sinogram ', sinogram.shape, sinogram.max(), sinogram.min(), sinogram.dtype)
-
+    sinogram = awgn(sinogram, noise_pow)
     def FOCUS(x):
         return x[200:350, 200:350]
 

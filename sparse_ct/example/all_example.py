@@ -11,7 +11,7 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
-    fname = "../data/shepp_logan.jpg"
+    fname = "../data/ct1.jpg"
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
@@ -55,5 +55,5 @@ if __name__ == "__main__":
         ))
 
     plot_grid([gt, img_fbp, img_sart, img_dip, img_dip_rand],
-            FOCUS=FOCUS, save_name='all.png', dpi=500)
+            FOCUS=FOCUS, save_name='ct2.png', dpi=500)
             

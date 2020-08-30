@@ -11,11 +11,11 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
-    fname = "../data/ct1.jpg"
+    fname = "../data/shepp_logan.jpg"
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
-            n_proj=32, size=512, angle1=0.0, angle2=180.0 )
+            n_proj=32, size=512, angle1=0.0, angle2=180.0, noise_pow=15.0 )
 
     recon_fbp = IRadonReconstructor('FBP', theta)
     recon_sart = SartReconstructor('SART', theta, sart_n_iter=70, sart_relaxation=0.02)
@@ -55,5 +55,5 @@ if __name__ == "__main__":
         ))
 
     plot_grid([gt, img_fbp, img_sart, img_dip, img_dip_rand],
-            FOCUS=FOCUS, save_name='ct2.png', dpi=500)
+            FOCUS=FOCUS, save_name='all.png', dpi=500)
             

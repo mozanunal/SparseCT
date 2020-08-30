@@ -133,3 +133,5 @@ dmypy.json
 */log*
 *log.txt
 *.npy
+
+sparse_ct/example/*.png

@@ -153,11 +153,7 @@ class DipReconstructor(Reconstructor):
                 net_input = net_input_saved + (noise.normal_() * self.reg_std)
 
             x_iter = net(net_input)
-
-            if i < 100:
-                loss = self._calc_loss(x_iter, projs, x_initial)
-            else:
-                loss = self._calc_loss(x_iter, projs, x_initial)
+            loss = self._calc_loss(x_iter, projs, x_initial)
             
             loss.backward()
             

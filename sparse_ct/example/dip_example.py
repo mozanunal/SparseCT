@@ -159,8 +159,12 @@ def test(fname, label):
 
 
 if __name__ == "__main__":
-    test("../data/shepp_logan.jpg", "shepp_logan")
+    # test("../data/shepp_logan.jpg", "shepp_logan")
     # test("../data/ct2.jpg", "ct2")
     # test("../data/ct1.jpg", "ct1")
-    # test("../data/abdomen_ct.jpg", "abdomen_ct")
-    # test("../data/walnut.jpg", "walnut")
+    # test("../data/LoDoPaB/004013_02_01_119.png", "LoDoPaB1")
+    # test("../data/LoDoPaB/004017_01_01_151.png", "LoDoPaB2")
+    # test("../data/LoDoPaB/004028_01_04_109.png", "LoDoPaB3")
+    test("../data/LoDoPaB/004043_01_01_169.png", "LoDoPaB4")
+    test("../data/LoDoPaB/004049_04_01_062.png", "LoDoPaB5")
+

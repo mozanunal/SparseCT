@@ -48,7 +48,7 @@ if __name__ == "__main__":
     recon_dip_rand.set_for_metric(gt, img_sart, FOCUS=FOCUS, log_dir='../log/dip')
     img_dip_rand = recon_dip_rand.calc(sinogram)
 
-    for r in [recon_fbp, recon_sart, recon_dip_rand, recon_dip ]:
+    for r in [recon_fbp, recon_sart, recon_dip, recon_dip_rand]:
         mse, psnr, ssim = r.eval(gt)
         print( "{}: MSE:{:.5f} PSNR:{:.5f} SSIM:{:.5f}".format(
             r.name, mse, psnr, ssim

@@ -7,7 +7,10 @@ import numpy as np
 import os
 from skimage.color import rgb2gray, gray2rgb
 from skimage.metrics import (
-    mean_squared_error, structural_similarity, peak_signal_noise_ratio)
+    mean_squared_error, 
+    structural_similarity, 
+    peak_signal_noise_ratio
+)
 from skimage.transform import iradon, iradon_sart
 import torch
 from torchvision import transforms
@@ -66,13 +69,13 @@ class DgrReconstructor(Reconstructor):
         self.FOCUS = None
         self.log_dir = None
  
-    def set_for_metric(self, gt, dip_initial, 
+    def set_for_metric(self, gt, noisy, 
                       FOCUS=None,
                       log_dir='log/dip'):
         assert len(gt.shape) == 2
-        assert len(dip_initial.shape) == 2
+        assert len(noisy.shape) == 2
         self.gt = gt
-        self.noisy = dip_initial
+        self.noisy = noisy
         self.FOCUS = FOCUS
         self.log_dir = log_dir
 

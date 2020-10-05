@@ -30,7 +30,7 @@ if __name__ == "__main__":
                                 bm3d_sigma=0.8)
 
     recon_n2self = N2SelfReconstructor('N2Self', theta,
-                n2self_n_iter=4000, net='skip', lr=0.001)
+                n2self_n_iter=4000, net='skip', lr=0.01)
 
     img_fbp = recon_fbp.calc(sinogram)
     img_sart = recon_sart.calc(sinogram)

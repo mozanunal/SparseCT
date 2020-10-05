@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
-            n_proj=16, size=512, angle1=0.0, angle2=180.0, noise_pow=15.0 )
+            n_proj=32, size=512, angle1=0.0, angle2=180.0, noise_pow=15.0 )
 
     recon_fbp = IRadonReconstructor('FBP', theta)
     recon_sart = SartReconstructor('SART', theta, sart_n_iter=40, sart_relaxation=0.15)

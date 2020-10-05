@@ -125,7 +125,7 @@ if __name__ == "__main__":
             rmse_hist.append(
                 mean_squared_error(x_iter_npy, gt))
             ssim_hist.append(
-                structural_similarity(x_iter_npy, gt, multichannel=True)
+                structural_similarity(x_iter_npy, gt, multichannel=False)
             )
             psnr_hist.append(
                 peak_signal_noise_ratio(x_iter_npy, gt)

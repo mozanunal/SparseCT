@@ -169,7 +169,7 @@ class DgrReconstructor(Reconstructor):
                 rmse_hist.append(
                     mean_squared_error(x_iter_npy, self.gt))
                 ssim_hist.append(
-                    structural_similarity(x_iter_npy, self.gt, multichannel=True)
+                    structural_similarity(x_iter_npy, self.gt, multichannel=False)
                 )
                 psnr_hist.append(
                     peak_signal_noise_ratio(x_iter_npy, self.gt)

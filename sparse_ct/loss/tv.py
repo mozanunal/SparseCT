@@ -3,9 +3,11 @@ import torch
 
 
 def tv_2d_l2(img):
+    assert len(img.shape) == 2
+    numel = img.shape[0] * img.shape[1]
     x_variance = torch.sum(torch.pow(img[:, :-1] - img[:, 1:], 2))
     y_variance = torch.sum(torch.pow(img[:-1, :] - img[1:, :], 2))
-    return (x_variance + y_variance) / (512 * 512)
+    return (x_variance + y_variance) / (numel)
 
 
 def tvd_2d_l2(img, direction='x'):

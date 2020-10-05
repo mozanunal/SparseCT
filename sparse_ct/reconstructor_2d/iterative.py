@@ -1,8 +1,14 @@
 
+
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from skimage.transform import iradon, iradon_sart
+from skimage.restoration import denoise_tv_bregman
+from bm3d import bm3d
+
+from sparse_ct.loss.tv import tv_2d_l2
 from .base import Reconstructor
+
 
 class SartReconstructor(Reconstructor):
     def __init__(self, name, angles,
@@ -29,6 +35,30 @@ class SartReconstructor(Reconstructor):
         return self.image_r
 
 
-class SartTVReconstructor(Reconstructor):
-    def __init__(self, name, projs, angles, n_iter=10, tv_weight=0.2, n_iter_tv=40):
-        pass
+class SartTVReconstructor(SartReconstructor):
+    def __init__(self, name, angles, 
+                sart_n_iter=10, sart_relaxation=0.15,
+                tv_weight=0.2, tv_n_iter=100):
+        super(SartTVReconstructor, self).__init__(name, angles, sart_n_iter=sart_n_iter, sart_relaxation=sart_relaxation)
+        self.tv_weight = tv_weight
+        self.tv_n_iter = tv_n_iter
+
+    def calc(self, projs, sart_plot=False):
+        image_r = super(SartTVReconstructor, self).calc(projs, sart_plot=sart_plot)
+        #denoise with tv
+        self.image_r = denoise_tv_bregman(image_r, self.tv_weight, self.tv_n_iter)
+        return self.image_r
+
+
+class SartBM3DReconstructor(SartReconstructor):
+    def __init__(self, name, angles, 
+                sart_n_iter=10, sart_relaxation=0.15,
+                bm3d_sigma=0.1):
+        super(SartBM3DReconstructor, self).__init__(name, angles, sart_n_iter=sart_n_iter, sart_relaxation=sart_relaxation)
+        self.bm3d_sigma = bm3d_sigma
+
+    def calc(self, projs, sart_plot=False):
+        image_r = super(SartBM3DReconstructor, self).calc(projs, sart_plot=sart_plot)
+        #denoise with tv
+        self.image_r = bm3d(image_r, self.bm3d_sigma)
+        return self.image_r

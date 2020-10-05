@@ -5,7 +5,7 @@ from sparse_ct.reconstructor_2d import (
     IRadonReconstructor,
     SartReconstructor,
     SartTVReconstructor,
-    DipReconstructor)
+    DgrReconstructor)
 
 
 def test(fname, label):
@@ -20,7 +20,7 @@ def test(fname, label):
         sart_relaxation=0.04)
 
     recon_dips = [
-        DipReconstructor('DIP_1.00_0.00_0.00_0.00', theta,
+        DgrReconstructor('DIP_1.00_0.00_0.00_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,
@@ -29,7 +29,7 @@ def test(fname, label):
                          w_perceptual_loss=0.0,
                          w_tv_loss=0.0
                          ),
-        DipReconstructor('DIP_0.99_0.01_0.00_0.00', theta,
+        DgrReconstructor('DIP_0.99_0.01_0.00_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,
@@ -38,7 +38,7 @@ def test(fname, label):
                          w_perceptual_loss=0.01,
                          w_tv_loss=0.0
                          ),
-        DipReconstructor('DIP_0.90_0.10_0.00_0.00', theta,
+        DgrReconstructor('DIP_0.90_0.10_0.00_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,
@@ -47,7 +47,7 @@ def test(fname, label):
                          w_perceptual_loss=0.10,
                          w_tv_loss=0.0
                          ),
-        DipReconstructor('DIP_0.50_0.50_0.00_0.00', theta,
+        DgrReconstructor('DIP_0.50_0.50_0.00_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,
@@ -56,7 +56,7 @@ def test(fname, label):
                          w_perceptual_loss=0.5,
                          w_tv_loss=0.0
                          ),
-        DipReconstructor('DIP_0.10_0.90_0.00_0.00', theta,
+        DgrReconstructor('DIP_0.10_0.90_0.00_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,
@@ -65,7 +65,7 @@ def test(fname, label):
                          w_perceptual_loss=0.90,
                          w_tv_loss=0.0
                          ),
-        DipReconstructor('DIP_0.01_0.99_0.00_0.00', theta,
+        DgrReconstructor('DIP_0.01_0.99_0.00_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,
@@ -74,7 +74,7 @@ def test(fname, label):
                          w_perceptual_loss=0.99,
                          w_tv_loss=0.0
                          ),
-        DipReconstructor('DIP_0.00_1.00_0.00_0.00', theta,
+        DgrReconstructor('DIP_0.00_1.00_0.00_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,
@@ -83,7 +83,7 @@ def test(fname, label):
                          w_perceptual_loss=1.0,
                          w_tv_loss=0.0
                          ),
-        DipReconstructor('DIP_0.99_0.00_0.01_0.00', theta,
+        DgrReconstructor('DIP_0.99_0.00_0.01_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,
@@ -92,7 +92,7 @@ def test(fname, label):
                          w_perceptual_loss=0.0,
                          w_tv_loss=0.01
                          ),
-        DipReconstructor('DIP_0.90_0.00_0.10_0.00', theta,
+        DgrReconstructor('DIP_0.90_0.00_0.10_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,
@@ -101,7 +101,7 @@ def test(fname, label):
                          w_perceptual_loss=0.0,
                          w_tv_loss=0.1
                          ),
-        DipReconstructor('DIP_0.50_0.00_0.50_0.00', theta,
+        DgrReconstructor('DIP_0.50_0.00_0.50_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,
@@ -110,7 +110,7 @@ def test(fname, label):
                          w_perceptual_loss=0.0,
                          w_tv_loss=0.5
                          ),
-        DipReconstructor('DIP_0.10_0.00_0.90_0.00', theta,
+        DgrReconstructor('DIP_0.10_0.00_0.90_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,
@@ -119,7 +119,7 @@ def test(fname, label):
                          w_perceptual_loss=0.0,
                          w_tv_loss=0.9
                          ),
-        DipReconstructor('DIP_0.01_0.00_0.99_0.00', theta,
+        DgrReconstructor('DIP_0.01_0.00_0.99_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,
@@ -128,7 +128,7 @@ def test(fname, label):
                          w_perceptual_loss=0.0,
                          w_tv_loss=0.99
                          ),
-        DipReconstructor('DIP_0.00_0.00_1.0_0.00', theta,
+        DgrReconstructor('DIP_0.00_0.00_1.0_0.00', theta,
                          dip_n_iter=8000,
                          net='skip',
                          lr=0.001,

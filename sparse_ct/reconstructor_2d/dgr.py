@@ -26,13 +26,12 @@ from sparse_ct.model.skip import Skip
 def _FOCUS(img):
     return img[300:450,200:350]
 
-class DipReconstructor(Reconstructor):
+class DgrReconstructor(Reconstructor):
     DEVICE = 'cuda'
     DTYPE = torch.cuda.FloatTensor
     INPUT_DEPTH = 32
     IMAGE_DEPTH = 1
     IMAGE_SIZE = 512
-    N_PROJ = 32
     ANGLE1 = 0.
     ANGLE2 = 180.
     SHOW_EVERY = 50
@@ -42,7 +41,8 @@ class DipReconstructor(Reconstructor):
         lr=0.001, reg_std=1./100,
          w_proj_loss=1.0, w_perceptual_loss=0.0, 
          w_ssim_loss=0.0, w_tv_loss=0.0, randomize_projs=None):
-        super(DipReconstructor, self).__init__(name, angles)
+        super(DgrReconstructor, self).__init__(name, angles)
+        self.N_PROJ = len(angles)
         self.n_iter = dip_n_iter
         assert net in ['skip', 'unet']
         self.net = net
@@ -161,7 +161,7 @@ class DipReconstructor(Reconstructor):
 
             # metric
             if i % self.SHOW_EVERY == 0:
-                x_iter_npy = np.clip(torch_to_np(x_iter), 0, 1)
+                x_iter_npy = np.clip(torch_to_np(x_iter), 0, 1).astype(np.float64)
 
                 rmse_hist.append(
                     mean_squared_error(x_iter_npy, self.gt))

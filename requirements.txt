@@ -3,3 +3,4 @@ numpy
 pandas
 matplotlib
 scikit-image
+bm3d==3.0.7

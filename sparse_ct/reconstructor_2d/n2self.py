@@ -83,16 +83,19 @@ class N2SelfReconstructor(Reconstructor):
         self.n2self_proj_ratio = n2self_proj_ratio
         assert net in ['skip', 'unet']
         self.lr = lr
+        self.theta = torch.from_numpy(angles).type(self.DTYPE)
 
         # net
-        self.net = self._get_net(net, weights=n2self_weights)
+        self.net = self._get_net(net)
         self.weights = n2self_weights
+        if self.weights:
+            self._load(self.weights)
         s  = sum([np.prod(list(p.size())) for p in self.net.parameters()]); 
         print ('Number of params: %d' % s)
 
         # loss functions and optimization
         self.mse = torch.nn.MSELoss().to(self.DEVICE)
-        self.theta = torch.from_numpy(angles).to(self.DEVICE)
+        
         self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
         self.i_iter = 0
 
@@ -128,7 +131,6 @@ class N2SelfReconstructor(Reconstructor):
         norm = transforms.Normalize(projs_torch[0].mean((1,2)), projs_torch[0].std((1,2)))
         full = set(i for i in range(self.n_proj))
 
-        print('Reconstructing with DIP...')
         for i in tqdm(range(self.n_iter)):
             
             # iter
@@ -189,7 +191,17 @@ class N2SelfReconstructor(Reconstructor):
         return self.image_r
     
     def _calc_supervised(self, projs):
-        pass
+        full = set(i for i in range(self.n_proj))
+        self.net.eval()
+        projs = np_to_torch(projs).type(self.DTYPE)
+        ir = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
+        x_iter = self.net(
+            ir(projs)
+        )
+        gt = self.gt
+        x_iter_npy = np.clip(torch_to_np(x_iter), 0, 1).astype(np.float64)
+        self.image_r = x_iter_npy
+        return self.image_r
 
     def calc(self, projs):
         if self.weights:
@@ -197,7 +209,7 @@ class N2SelfReconstructor(Reconstructor):
         else:
             return self._calc_unsupervised(projs)
 
-    def _get_net(self, net, weights=None):
+    def _get_net(self, net):
         # Init Net
         if net == 'skip':
             return Skip(num_input_channels=self.INPUT_DEPTH,
@@ -214,15 +226,27 @@ class N2SelfReconstructor(Reconstructor):
         else:
             assert False
 
+
+
     ######### Training #########
+    def _save(self, save_name):
+        torch.save(self.net.state_dict(), save_name)
+
+    def _load(self, load_name):
+        print('weights are loaded...')
+        self.net.load_state_dict(torch.load(load_name))
+
     def train(self, train_loader, test_loader, epochs=10):
         pass
 
     def _train_one_epoch(self, train_loader, test_loader):
         full = set(i for i in range(self.n_proj))
+        self.weights = True
         self.net.train()
         for projs in tqdm(train_loader):
             self.i_iter += 1
+
+            projs = projs.type(self.DTYPE)
 
             self.optimizer.zero_grad()
 
@@ -242,8 +266,35 @@ class N2SelfReconstructor(Reconstructor):
 
             loss.backward()
             self.optimizer.step()
+            if self.i_iter % self.SHOW_EVERY == 0:
+                print('loss', loss.item())
 
-    def _eval(self, criterion, data_loader):
-        pass
+    def _eval(self, test_loader):
+        self.net.eval()
+        rmse_list = []
+        ssim_list = []
+        psnr_list = []
+        for projs, gts in tqdm(test_loader):
+            projs = projs.type(self.DTYPE)
+            gts = gts.type(self.DTYPE)
+            ir = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
+            x_iter = self.net(
+                ir(projs)
+            )
+            
+            for i in range(projs.shape[0]):
+                gt = torch_to_np(gts[i:i+1])
+                x_iter_npy = np.clip(torch_to_np(x_iter[i:i+1]), 0, 1).astype(np.float64)
+
+                rmse_list.append(mean_squared_error(x_iter_npy, gt))
+                ssim_list.append(structural_similarity(x_iter_npy, gt, multichannel=False))
+                psnr_list.append(peak_signal_noise_ratio(x_iter_npy, gt))
+                # print('{}/{}- psnr: {:.3f} - ssim: {:.3f} - rmse: {:.5f}'.format(
+                #     self.name, i, psnr_list[-1], ssim_list[-1], rmse_list[-1],
+                # ))
+        print('EVAL_RESULT {}/{}- psnr: {:.3f} - ssim: {:.3f} - rmse: {:.5f}'.format(
+                self.name, self.i_iter, np.mean(psnr_list), np.mean(ssim_list), np.mean(rmse_list),
+            ))
+            
 
 

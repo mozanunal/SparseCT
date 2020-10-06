@@ -1,4 +1,6 @@
 
+import random
+
 from tqdm import tqdm
 import glob
 import numpy as np
@@ -27,7 +29,7 @@ if __name__ == "__main__":
 
     test_loader = torch.utils.data.DataLoader(
         Dataset(
-            file_list, 
+            random.choices(file_list, k=200), 
             return_gt=True,
             n_proj=32,
             noise_pow=15.0,
@@ -43,7 +45,12 @@ if __name__ == "__main__":
         n2self_n_iter=10, n2self_weights=None
     )
 
-    recon_n2self._train_one_epoch(train_loader, test_loader)
+    for i in range(100):
+        print('--------------- ',i)
+        recon_n2self._eval(test_loader)
+        recon_n2self._train_one_epoch(train_loader, test_loader)
+        recon_n2self._save('last.pth')
+    recon_n2self._save('end.pth')
 
     # for x in tqdm(train_loader):
     #     print(x.shape)

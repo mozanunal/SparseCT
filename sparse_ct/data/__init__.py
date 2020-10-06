@@ -156,14 +156,10 @@ def image_to_sparse_sinogram(
     noise_pow=15.0
 ):
     raw_img = io.imread(image_path, as_gray=gray).astype('float64')
-    print()
     raw_img = raw_img / raw_img.max() # map [0,1]
     gt = resize(pad_to_square(raw_img), (size, size))
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
-
-    # print('gt ', gt.shape, gt.max(), gt.min(), gt.dtype )
-    # print('sinogram ', sinogram.shape, sinogram.max(), sinogram.min(), sinogram.dtype)
     sinogram = awgn(sinogram, noise_pow)
     def FOCUS(x):
         return x[200:350, 200:350]

@@ -75,7 +75,9 @@ class N2SelfReconstructor(Reconstructor):
 
     def __init__(self, name, angles,
         net='skip', lr=0.001,
-        n2self_n_iter=8000, n2self_weights=None,
+        n2self_n_iter=8000, 
+        n2self_weights=None,
+        n2self_selfsupervised=True,
         n2self_proj_ratio=0.2):
         super(N2SelfReconstructor, self).__init__(name, angles)
         self.n_proj = len(angles)
@@ -88,6 +90,7 @@ class N2SelfReconstructor(Reconstructor):
         # net
         self.net = self._get_net(net)
         self.weights = n2self_weights
+        self.selfsupervised = n2self_selfsupervised
         if self.weights:
             self._load(self.weights)
         s  = sum([np.prod(list(p.size())) for p in self.net.parameters()]); 
@@ -191,23 +194,21 @@ class N2SelfReconstructor(Reconstructor):
         return self.image_r
     
     def _calc_supervised(self, projs):
-        full = set(i for i in range(self.n_proj))
         self.net.eval()
         projs = np_to_torch(projs).type(self.DTYPE)
         ir = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
         x_iter = self.net(
             ir(projs)
         )
-        gt = self.gt
         x_iter_npy = np.clip(torch_to_np(x_iter), 0, 1).astype(np.float64)
-        self.image_r = x_iter_npy
+        self.image_r = x_iter_npy.copy()
         return self.image_r
 
     def calc(self, projs):
-        if self.weights:
-            return self._calc_supervised(projs)
-        else:
+        if self.selfsupervised:
             return self._calc_unsupervised(projs)
+        else:
+            return self._calc_supervised(projs)
 
     def _get_net(self, net):
         # Init Net

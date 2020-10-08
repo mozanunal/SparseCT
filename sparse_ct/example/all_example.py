@@ -12,7 +12,7 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
-    fname = "../data/ct1.jpg"
+    fname = "/home/moz/Documents/data/CT_30_000/Images_png_50/003827_01_02/378.png"
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,

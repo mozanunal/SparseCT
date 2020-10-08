@@ -13,6 +13,7 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
+    #fname = "/home/moz/Documents/data/hey/Images_png_52/004049_01_01/826.png"
     fname = "../data/ct1.jpg"
 
 
@@ -30,11 +31,11 @@ if __name__ == "__main__":
                                 bm3d_sigma=0.8)
 
     recon_n2self = N2SelfReconstructor('N2Self', theta,
-                n2self_n_iter=100, n2self_proj_ratio=0.2, 
+                n2self_n_iter=100, n2self_proj_ratio=0.5, 
                 net='skip', lr=0.01, )
 
     recon_n2self_learned = N2SelfReconstructor('N2SelfLearned', theta,
-                net='skip', n2self_weights='net.pth')
+                net='skip', n2self_weights='end.pth')
 
     img_fbp = recon_fbp.calc(sinogram)
     img_sart = recon_sart.calc(sinogram)
@@ -44,7 +45,7 @@ if __name__ == "__main__":
     recon_n2self.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
     img_n2self = recon_n2self.calc(sinogram)
 
-    recon_n2self_learned.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS,)
+    recon_n2self_learned.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
     img_n2self_learned = recon_n2self_learned.calc(sinogram)
 
 

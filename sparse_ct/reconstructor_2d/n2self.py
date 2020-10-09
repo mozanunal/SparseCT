@@ -83,7 +83,7 @@ class N2SelfReconstructor(Reconstructor):
         self.n_proj = len(angles)
         self.n_iter = n2self_n_iter
         self.n2self_proj_ratio = n2self_proj_ratio
-        assert net in ['skip', 'unet']
+        assert net in ['skip', 'unet', 'skipV2']
         self.lr = lr
         self.theta = torch.from_numpy(angles).type(self.DTYPE)
 
@@ -218,6 +218,12 @@ class N2SelfReconstructor(Reconstructor):
                 upsample_mode='nearest',
                 num_channels_down=[16, 32, 64, 128, 256], 
                 num_channels_up=[16, 32, 64, 128, 256]).to(self.DEVICE)
+        elif net == 'skipV2':
+            return Skip(num_input_channels=self.INPUT_DEPTH,
+                num_output_channels=self.IMAGE_DEPTH,
+                upsample_mode='nearest',
+                num_channels_down=[32, 64, 128, 256, 512], 
+                num_channels_up=[32, 64, 128, 256, 512]).to(self.DEVICE)
         elif net == 'unet':
             return UNet(num_input_channels=self.INPUT_DEPTH, num_output_channels=self.IMAGE_DEPTH,
                     feature_scale=4, more_layers=0, concat_x=False,

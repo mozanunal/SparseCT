@@ -23,7 +23,7 @@ if __name__ == "__main__":
         Dataset(
             file_list_train, 
             return_gt=False,
-            n_proj=32,
+            n_proj=64,
             noise_pow=15.0,
             img_size=512),
         **params
@@ -33,24 +33,24 @@ if __name__ == "__main__":
         Dataset(
             random.choices(file_list_test, k=500), 
             return_gt=True,
-            n_proj=32,
+            n_proj=64,
             noise_pow=15.0,
             img_size=512),
         **params
     )
 
-    theta = np.linspace(0.0, 180.0, 32, endpoint=False)
+    theta = np.linspace(0.0, 180.0, 64, endpoint=False)
 
     recon_n2self = N2SelfReconstructor(
         'N2SelfTrained', theta,
         net='skip', lr=0.001,
         n2self_n_iter=10, 
-        n2self_weights='iter_2.pth',
+        n2self_weights=None,
         n2self_proj_ratio=0.2
     )
     recon_n2self.SHOW_EVERY = 200
 
-    for i in range(30):
+    for i in range(50):
         print('--------------- ',i)
         recon_n2self._eval(test_loader)
         recon_n2self._train_one_epoch(train_loader, test_loader)

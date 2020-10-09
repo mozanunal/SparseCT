@@ -14,7 +14,7 @@ from sparse_ct.reconstructor_2d import (
 if __name__ == "__main__":
 
     #fname = "/home/moz/Documents/data/hey/Images_png_52/004049_01_01/826.png"
-    fname = "../data/ct1.jpg"
+    fname = "../data/ct2.jpg"
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
@@ -24,18 +24,21 @@ if __name__ == "__main__":
     recon_sart = SartReconstructor('SART', theta, 
                                 sart_n_iter=4, sart_relaxation=0.15)
     recon_sart_tv = SartTVReconstructor('SART+TV', theta, 
-                                sart_n_iter=4, sart_relaxation=0.15,
-                                tv_weight=0.5, tv_n_iter=100)
+                                sart_n_iter=40, sart_relaxation=0.15,
+                                tv_weight=0.3, tv_n_iter=100)
     recon_bm3d = SartBM3DReconstructor('SART+BM3D', theta, 
-                                sart_n_iter=4, sart_relaxation=0.15,
-                                bm3d_sigma=0.8)
+                                sart_n_iter=40, sart_relaxation=0.15,
+                                bm3d_sigma=0.3)
 
     recon_n2self = N2SelfReconstructor('N2Self', theta,
-                n2self_n_iter=100, n2self_proj_ratio=0.5, 
-                net='skip', lr=0.01, )
+                n2self_n_iter=1000, n2self_proj_ratio=0.2,
+                n2self_weights=None, n2self_selfsupervised=True,
+                net='skipV2', lr=0.01, )
 
     recon_n2self_learned = N2SelfReconstructor('N2SelfLearned', theta,
-                net='skip', n2self_weights='end.pth')
+                n2self_n_iter=1000, n2self_proj_ratio=0.2,
+                n2self_weights='training-01/iter_8.pth', n2self_selfsupervised=True,
+                net='skip', lr=0.01, )
 
     img_fbp = recon_fbp.calc(sinogram)
     img_sart = recon_sart.calc(sinogram)

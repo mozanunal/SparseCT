@@ -13,8 +13,8 @@ if __name__ == "__main__":
             'shuffle': True,
             'num_workers': 8}
 
-    pwd_train = '/home/moz/Documents/data/CT_30_000/train'
-    pwd_test = '/home/moz/Documents/data/CT_30_000/train'
+    pwd_train = '/external/CT_30_000/train'
+    pwd_test = '/external/CT_30_000/test'
 
     file_list_train = glob.glob(pwd_train+'/*/*/*.png')
     file_list_test = glob.glob(pwd_test+'/*/*/*.png')

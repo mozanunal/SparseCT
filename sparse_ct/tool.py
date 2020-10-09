@@ -2,6 +2,9 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import torchvision.transforms.functional as F
+from skimage.transform import resize
+from skimage.io import imsave, imshow_collection, imshow
+
 
 def np_to_torch(img_np):
     '''
@@ -54,15 +57,23 @@ def plot_result(gt, noisy, result, FOCUS=None, show=False, save_name=None):
     plt.close()
 
 def plot_grid(imgs, FOCUS=None, show=False, save_name=None, dpi=300):
-    fig, ax = plt.subplots(2, 1)
-    ims = np.hstack(imgs)
-    focussed_ims = np.hstack(
-        [FOCUS(x) for x in imgs]
-    )
-    ax[0].imshow(np.clip(ims, 0, 1), cmap='gray')
-    ax[1].imshow(np.clip(focussed_ims, 0, 1), cmap='gray')
+    # fig, ax = plt.subplots(1, 1)
+    updated_imgs = []
+    if FOCUS:
+        for img in imgs:
+            focused_img = FOCUS(img)
+            f_size_x, f_size_y = focused_img.shape
+            focused_img = resize(focused_img, (f_size_x*2, f_size_y*2))
+            f_size_x, f_size_y = focused_img.shape
+            size_x, size_y = img.shape
+            uimg = img.copy()
+            uimg[size_x-f_size_x:size_x, size_y-f_size_y:size_y] = focused_img
+            updated_imgs.append(uimg)
+
+
+    ims = np.clip(np.hstack(imgs), 0, 1) * 255
+    ims = ims.astype(np.uint8)
     if show:
-        plt.show()
+        imshow(ims)
     if save_name:
-        plt.savefig(save_name, dpi=dpi)
-    plt.close()
+        imsave(save_name, ims)

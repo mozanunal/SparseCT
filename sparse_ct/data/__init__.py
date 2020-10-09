@@ -166,7 +166,7 @@ def image_to_sparse_sinogram(
     sinogram = radon(gt, theta=theta, circle=True)
     sinogram = awgn(sinogram, noise_pow)
     def FOCUS(x):
-        return x[200:350, 200:350]
+        return x[225:350, 225:350]
 
     if channel == 3:
         gt = gray2rgb(gt)

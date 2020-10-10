@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import torchvision.transforms.functional as F
 from skimage.transform import resize
 from skimage.io import imsave, imshow_collection, imshow
-
+from skimage.draw import line, rectangle, rectangle_perimeter
 
 def np_to_torch(img_np):
     '''
@@ -61,17 +61,33 @@ def plot_grid(imgs, FOCUS=None, show=False, save_name=None, dpi=300):
     updated_imgs = []
     if FOCUS:
         for img in imgs:
-            focused_img = FOCUS(img)
+            # find focus
+            focused_img, coor = FOCUS(img)
             f_size_x, f_size_y = focused_img.shape
             focused_img = resize(focused_img, (f_size_x*2, f_size_y*2))
             f_size_x, f_size_y = focused_img.shape
             size_x, size_y = img.shape
             uimg = img.copy()
+            # draw focus rect
+            rr, cc = rectangle_perimeter(
+                coor[0:2], 
+                coor[2:4]
+            )
+            uimg[rr, cc] = 1
+            # draw big focus rect
+            rr, cc = rectangle_perimeter(
+                (size_x-f_size_x, size_y-f_size_y),
+                (size_x-2, size_y-2),
+            )
             uimg[size_x-f_size_x:size_x, size_y-f_size_y:size_y] = focused_img
+            uimg[rr, cc] = 1
+            # append img
             updated_imgs.append(uimg)
+    else:
+        updated_imgs = imgs
 
 
-    ims = np.clip(np.hstack(imgs), 0, 1) * 255
+    ims = np.clip(np.hstack(updated_imgs), 0, 1) * 255
     ims = ims.astype(np.uint8)
     if show:
         imshow(ims)

@@ -1,6 +1,6 @@
 
-from sparse_ct.tool import plot_result, plot_grid
-from sparse_ct.data import sparse_image, image_to_sparse_sinogram
+from sparse_ct.tool import plot_grid
+from sparse_ct.data import sparse_image, image_to_sparse_sinogram, ellipses_to_sparse_sinogram
 from sparse_ct.reconstructor_2d import (
                         IRadonReconstructor,
                         SartReconstructor,
@@ -13,32 +13,36 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
-    #fname = "/home/moz/Documents/data/hey/Images_png_52/004049_01_01/826.png"
-    fname = "../data/ct2.jpg"
+    fname = "/external/CT_30_000/train/Images_png_52/004049_01_01/347.png"
+    #fname = "../data/ct1.jpg"
+
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
-            n_proj=32, size=512, angle1=0.0, angle2=180.0, noise_pow=15.0 )
+            n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=15.0 )
+    # gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
+    #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=15.0 )
 
     recon_fbp = IRadonReconstructor('FBP', theta)
     recon_sart = SartReconstructor('SART', theta, 
                                 sart_n_iter=4, sart_relaxation=0.15)
     recon_sart_tv = SartTVReconstructor('SART+TV', theta, 
                                 sart_n_iter=4, sart_relaxation=0.15,
-                                tv_weight=0.3, tv_n_iter=100)
+                                tv_weight=0.8, tv_n_iter=100)
     recon_bm3d = SartBM3DReconstructor('SART+BM3D', theta, 
                                 sart_n_iter=4, sart_relaxation=0.15,
                                 bm3d_sigma=0.3)
 
     recon_n2self = N2SelfReconstructor('N2Self', theta,
-                n2self_n_iter=2000, n2self_proj_ratio=0.2,
+                n2self_n_iter=1001, n2self_proj_ratio=0.2,
                 n2self_weights=None, n2self_selfsupervised=True,
                 net='skipV2', lr=0.01, )
 
     recon_n2self_learned = N2SelfReconstructor('N2SelfLearned', theta,
-                n2self_n_iter=2000, n2self_proj_ratio=0.2,
-                n2self_weights='training-02/iter_8.pth', n2self_selfsupervised=True,
-                net='skip', lr=0.01, )
+                n2self_n_iter=1001, n2self_proj_ratio=0.2,
+                n2self_weights='training-03/iter_196200.pth',
+                n2self_selfsupervised=True,
+                net='skipV2', lr=0.01, )
 
     img_fbp = recon_fbp.calc(sinogram)
     img_sart = recon_sart.calc(sinogram)
@@ -63,5 +67,5 @@ if __name__ == "__main__":
         ))
 
     plot_grid([gt, img_fbp, img_sart, img_sart_tv, img_sart_bm3d, img_n2self, img_n2self_learned],
-            FOCUS=None, save_name='all.png', dpi=500)
+            FOCUS=FOCUS, save_name='all.png', dpi=500)
             

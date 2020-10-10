@@ -72,6 +72,7 @@ class N2SelfReconstructor(Reconstructor):
     IMAGE_DEPTH = 1
     IMAGE_SIZE = 512
     SHOW_EVERY = 50
+    SAVE_EVERY = 600
 
     def __init__(self, name, angles,
         net='skip', lr=0.001,
@@ -275,6 +276,9 @@ class N2SelfReconstructor(Reconstructor):
             self.optimizer.step()
             if self.i_iter % self.SHOW_EVERY == 0:
                 print('loss', loss.item())
+            if self.i_iter % self.SAVE_EVERY == 0:
+                self._eval(test_loader)
+                self._save('iter_{}.pth'.format(self.i_iter))
 
     def _eval(self, test_loader):
         self.net.eval()

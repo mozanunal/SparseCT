@@ -21,7 +21,7 @@ from tqdm import tqdm
 from .base import Reconstructor
 from sparse_ct.loss.tv import tv_2d_l2
 from sparse_ct.loss.perceptual import VGGPerceptualLoss
-from sparse_ct.tool import im2tensor, plot_result, np_to_torch, torch_to_np
+from sparse_ct.tool import im2tensor, plot_grid, np_to_torch, torch_to_np
 from sparse_ct.model.unet import UNet
 from sparse_ct.model.skip import Skip
 
@@ -133,10 +133,8 @@ class DgrReconstructor(Reconstructor):
         # Optimizer
         optimizer = torch.optim.Adam(net.parameters(), lr=self.lr)
         cur_lr = self.lr
-        projs = self.radon(img_gt_torch).detach().clone()
+        projs = np_to_torch(projs).type(self.DTYPE) # self.radon(img_gt_torch).detach().clone()
         
-        print(x_initial.shape, net_input.shape, projs.shape)
-
         # Iterations
         loss_hist = []
         rmse_hist = []
@@ -197,7 +195,7 @@ class DgrReconstructor(Reconstructor):
                         # save network
                         best_network = [x.detach().cpu() for x in net.parameters()]
                         best_result = x_iter_npy.copy() 
-                plot_result(self.gt, self.noisy, x_iter_npy, self.FOCUS, save_name=self.log_dir+'/{}.png'.format(i))
+                plot_grid([self.gt, self.noisy, x_iter_npy], self.FOCUS, save_name=self.log_dir+'/{}.png'.format(i))
 
         self.image_r = best_result
         return self.image_r

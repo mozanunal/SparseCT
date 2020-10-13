@@ -16,7 +16,7 @@ if __name__ == "__main__":
     fname = "../data/ct1.jpg"
 
 
-    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1, n_proj=32, size=512 )
+    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1, n_proj=32, size=512, noise_pow=25.0 )
 
     n_iter = 40
 
@@ -53,6 +53,13 @@ if __name__ == "__main__":
             sart_n_iter=n_iter, 
             sart_relaxation=0.15, 
             tv_weight=0.95, 
+            tv_n_iter=100
+        ),
+        SartTVReconstructor(
+            'SART+TVw1.00', theta, 
+            sart_n_iter=n_iter, 
+            sart_relaxation=0.15, 
+            tv_weight=1.00, 
             tv_n_iter=100
         ),
         SartBM3DReconstructor(
@@ -95,4 +102,4 @@ if __name__ == "__main__":
             r.name, mse, psnr, ssim
         ))
 
-    plot_grid( [gt]+imgs, FOCUS=FOCUS, show=True)
+    plot_grid( [gt]+imgs, FOCUS=FOCUS, save_name='conventional.png')

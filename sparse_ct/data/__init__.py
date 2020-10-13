@@ -11,22 +11,24 @@ import sys
 
 def db2ratio(db):
     """
-    db=10*log(ratio)
-    ratio=10**(db/10)
+    db=20*log(ratio)
+    ratio=10**(db/20)
     """
-    return 10.0**(db/10.0)
+    return 20.0**(db/10.0)
 
 def awgn(x, noise_pow):
     try:
         k = db2ratio(noise_pow)
         return x + np.random.normal(0.0, x.mean()/k, x.shape )
+        
     except Exception as e:
         print('awgn error', e, file=sys.stderr,)
         return x
  
 
-def pad_to_square(img):
-    size_big = max(img.shape)+0
+def pad_to_square(img, size_big=None):
+    if size_big == None:
+        size_big = max(img.shape)+0
     h, w = img.shape
     delta_h = size_big - h
     delta_w = size_big - w
@@ -157,7 +159,7 @@ def sparse_image(
 
 
 elipData = EllipsesDataset(
-        image_size = 512,
+        image_size = 360,
         train_len = 32000,
         validation_len = 3200,
         test_len = 0,
@@ -174,6 +176,7 @@ def ellipses_to_sparse_sinogram(
     noise_pow=15.0
 ):
     gt = np.array(next(elipData.generator(part=part))).astype('float64')
+    gt = pad_to_square(gt, size_big=size)
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
     sinogram = awgn(sinogram, noise_pow)

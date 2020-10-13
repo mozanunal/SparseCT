@@ -35,8 +35,6 @@ class DgrReconstructor(Reconstructor):
     INPUT_DEPTH = 32
     IMAGE_DEPTH = 1
     IMAGE_SIZE = 512
-    ANGLE1 = 0.
-    ANGLE2 = 180.
     SHOW_EVERY = 50
 
     def __init__(self, name, angles,
@@ -61,7 +59,7 @@ class DgrReconstructor(Reconstructor):
         self.mse = torch.nn.MSELoss().to(self.DEVICE)
         self.ssim = MS_SSIM(data_range=1.0, size_average=True, channel=self.IMAGE_DEPTH).to(self.DEVICE)
         self.perceptual = VGGPerceptualLoss(resize=True).to(self.DEVICE)
-        self.theta = torch.linspace(self.ANGLE1, self.ANGLE2, self.N_PROJ).to(self.DEVICE)
+        self.theta = torch.from_numpy(angles).to(self.DEVICE)
         self.radon = Radon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
         self.iradon = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
         self.gt = None
@@ -107,11 +105,6 @@ class DgrReconstructor(Reconstructor):
             ssim_l = self.w_ssim_loss * (1 - self.ssim(x_iter, x_initial.detach() ))
         return proj_l +  percep_l +  tv_l + ssim_l
 
-    def _calc_start_loss(self, x_iter, projs, x_initial):
-        norm = transforms.Normalize(projs[0].mean((1,2)), projs[0].std((1,2)))
-        percep_l = self.perceptual(x_iter, x_initial.detach())
-        proj_l = self.mse(norm(self.radon(x_iter)[0]), norm(projs[0]))
-        return proj_l + percep_l
 
     def calc(self, projs):
         if not os.path.exists(self.log_dir):
@@ -133,8 +126,8 @@ class DgrReconstructor(Reconstructor):
         # Optimizer
         optimizer = torch.optim.Adam(net.parameters(), lr=self.lr)
         cur_lr = self.lr
-        projs = np_to_torch(projs).type(self.DTYPE) # self.radon(img_gt_torch).detach().clone()
-        
+        projs = np_to_torch(projs).type(self.DTYPE)#self.radon(img_gt_torch).detach().clone()
+        #np_to_torch(projs).type(self.DTYPE) # 
         # Iterations
         loss_hist = []
         rmse_hist = []

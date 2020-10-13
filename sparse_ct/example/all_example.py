@@ -15,14 +15,14 @@ if __name__ == "__main__":
     fname = "../data/ct1.jpg"
 
 
-    gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram('validation', channel=1,
-            n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=15.0 )
+    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
+            n_proj=145, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
    
     #print(gt.shape, gt.dtype, gt.max(), gt.min())
     #print(sinogram.shape, sinogram.dtype, sinogram.max(), sinogram.min())
 
     recon_fbp = IRadonReconstructor('FBP', theta)
-    recon_sart = SartReconstructor('SART', theta, sart_n_iter=4, sart_relaxation=0.15)
+    recon_sart = SartReconstructor('SART', theta, sart_n_iter=40, sart_relaxation=0.15)
     recon_sart_tv = SartTVReconstructor('SART+TV', theta, 
                                 sart_n_iter=40, sart_relaxation=0.15,
                                 tv_weight=0.3, tv_n_iter=100)
@@ -32,8 +32,8 @@ if __name__ == "__main__":
 
     recon_dip = DgrReconstructor('DGR', theta, 
                                 dip_n_iter=8000, 
-                                net='skip',
-                                lr=0.01,
+                                net='unet',
+                                lr=0.0001,
                                 reg_std=1./100,
                                 w_proj_loss=1.0,
                                 w_perceptual_loss=0.0,
@@ -41,8 +41,8 @@ if __name__ == "__main__":
                             )
     recon_dip_rand = DgrReconstructor('RDGR', theta, 
                                 dip_n_iter=8000, 
-                                net='skip',
-                                lr=0.01,
+                                net='unet',
+                                lr=0.0001,
                                 reg_std=1./100,
                                 w_proj_loss=1.0,
                                 w_perceptual_loss=0.0,

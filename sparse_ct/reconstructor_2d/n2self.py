@@ -74,19 +74,19 @@ class N2SelfReconstructor(Reconstructor):
     SHOW_EVERY = 50
     SAVE_EVERY = 600
 
-    def __init__(self, name, angles,
+    def __init__(self, name,
         net='skip', lr=0.001,
         n2self_n_iter=8000, 
         n2self_weights=None,
         n2self_selfsupervised=True,
         n2self_proj_ratio=0.2):
-        super(N2SelfReconstructor, self).__init__(name, angles)
+        super(N2SelfReconstructor, self).__init__(name)
         self.n_proj = len(angles)
         self.n_iter = n2self_n_iter
         self.n2self_proj_ratio = n2self_proj_ratio
         assert net in ['skip', 'unet', 'skipV2']
         self.lr = lr
-        self.theta = torch.from_numpy(angles).type(self.DTYPE)
+        
 
         # net
         self.net = self._get_net(net)
@@ -127,7 +127,7 @@ class N2SelfReconstructor(Reconstructor):
         self.FOCUS = FOCUS
         self.log_dir = log_dir
 
-    def _calc_unsupervised(self, projs):
+    def _calc_unsupervised(self, projs, theta):
         if not os.path.exists(self.log_dir):
             os.mkdir(self.log_dir)
             
@@ -194,7 +194,7 @@ class N2SelfReconstructor(Reconstructor):
         self.image_r = self.best_result
         return self.image_r
     
-    def _calc_supervised(self, projs):
+    def _calc_supervised(self, projs, theta):
         self.net.eval()
         projs = np_to_torch(projs).type(self.DTYPE)
         ir = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
@@ -205,11 +205,12 @@ class N2SelfReconstructor(Reconstructor):
         self.image_r = x_iter_npy.copy()
         return self.image_r
 
-    def calc(self, projs):
+    def calc(self, projs, theta):
+        self.theta = torch.from_numpy(theta).type(self.DTYPE)
         if self.selfsupervised:
-            return self._calc_unsupervised(projs)
+            return self._calc_unsupervised(projs, theta)
         else:
-            return self._calc_supervised(projs)
+            return self._calc_supervised(projs, theta)
 
     def _get_net(self, net):
         # Init Net

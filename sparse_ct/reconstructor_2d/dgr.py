@@ -37,13 +37,12 @@ class DgrReconstructor(Reconstructor):
     IMAGE_SIZE = 512
     SHOW_EVERY = 50
 
-    def __init__(self, name, angles,
+    def __init__(self, name,
         dip_n_iter=8000, net='skip',
         lr=0.001, reg_std=1./100,
          w_proj_loss=1.0, w_perceptual_loss=0.0, 
          w_ssim_loss=0.0, w_tv_loss=0.0, randomize_projs=None):
-        super(DgrReconstructor, self).__init__(name, angles)
-        self.N_PROJ = len(angles)
+        super(DgrReconstructor, self).__init__(name)
         self.n_iter = dip_n_iter
         assert net in ['skip', 'unet']
         self.net = net
@@ -59,9 +58,7 @@ class DgrReconstructor(Reconstructor):
         self.mse = torch.nn.MSELoss().to(self.DEVICE)
         self.ssim = MS_SSIM(data_range=1.0, size_average=True, channel=self.IMAGE_DEPTH).to(self.DEVICE)
         self.perceptual = VGGPerceptualLoss(resize=True).to(self.DEVICE)
-        self.theta = torch.from_numpy(angles).to(self.DEVICE)
-        self.radon = Radon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
-        self.iradon = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
+
         self.gt = None
         self.noisy = None
         self.FOCUS = None
@@ -106,7 +103,14 @@ class DgrReconstructor(Reconstructor):
         return proj_l +  percep_l +  tv_l + ssim_l
 
 
-    def calc(self, projs):
+    def calc(self, projs, theta):
+        # recon params
+        self.N_PROJ = len(theta)
+        self.theta = torch.from_numpy(theta).to(self.DEVICE)
+        self.radon = Radon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
+        self.iradon = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
+
+        # start recon
         if not os.path.exists(self.log_dir):
             os.mkdir(self.log_dir)
 

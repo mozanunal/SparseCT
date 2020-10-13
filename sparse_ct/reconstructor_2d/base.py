@@ -7,9 +7,8 @@ from skimage.metrics import (
     peak_signal_noise_ratio)
 
 class Reconstructor(object):
-    def __init__(self, name, angles):
+    def __init__(self, name):
         self.name = name
-        self.angles = angles
         self.image_r = None
 
     def eval(self, gt):
@@ -29,7 +28,7 @@ class Reconstructor(object):
 
         
 
-    def calc(self):
+    def calc(self, sinogra, angles):
         pass
         # should be implemented in
 

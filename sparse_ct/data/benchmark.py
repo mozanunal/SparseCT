@@ -12,7 +12,7 @@ from . import image_to_sparse_sinogram
 
 def get_images(path):
     img_png = glob.glob(path+'/*.png')
-    img_jpg = glob.glob(path+'/*.png')
+    img_jpg = glob.glob(path+'/*.jpg')
     return img_jpg + img_png
 
 def benchmark(

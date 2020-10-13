@@ -23,37 +23,37 @@ if __name__ == "__main__":
     # gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=15.0 )
 
-    recon_fbp = IRadonReconstructor('FBP', theta)
-    recon_sart = SartReconstructor('SART', theta, 
+    recon_fbp = IRadonReconstructor('FBP')
+    recon_sart = SartReconstructor('SART',
                                 sart_n_iter=40, sart_relaxation=0.15)
-    recon_sart_tv = SartTVReconstructor('SART+TV', theta, 
+    recon_sart_tv = SartTVReconstructor('SART+TV', 
                                 sart_n_iter=40, sart_relaxation=0.15,
                                 tv_weight=0.5, tv_n_iter=100)
-    recon_bm3d = SartBM3DReconstructor('SART+BM3D', theta, 
+    recon_bm3d = SartBM3DReconstructor('SART+BM3D', 
                                 sart_n_iter=40, sart_relaxation=0.15,
                                 bm3d_sigma=0.5)
 
-    recon_n2self = N2SelfReconstructor('N2Self', theta,
+    recon_n2self = N2SelfReconstructor('N2Self',
                 n2self_n_iter=4001, n2self_proj_ratio=0.2,
                 n2self_weights=None, n2self_selfsupervised=True,
                 net='skipV2', lr=0.01, )
 
-    recon_n2self_learned = N2SelfReconstructor('N2SelfLearned', theta,
+    recon_n2self_learned = N2SelfReconstructor('N2SelfLearned',
                 n2self_n_iter=4001, n2self_proj_ratio=0.2,
                 n2self_weights='training-03/epoch_8.pth',
                 n2self_selfsupervised=True,
                 net='skipV2', lr=0.01, )
 
-    img_fbp = recon_fbp.calc(sinogram)
-    img_sart = recon_sart.calc(sinogram)
-    img_sart_tv = recon_sart_tv.calc(sinogram)
-    img_sart_bm3d = recon_bm3d.calc(sinogram)
+    img_fbp = recon_fbp.calc(sinogram, theta)
+    img_sart = recon_sart.calc(sinogram, theta)
+    img_sart_tv = recon_sart_tv.calc(sinogram, theta)
+    img_sart_bm3d = recon_bm3d.calc(sinogram, theta)
 
     recon_n2self.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
-    img_n2self = recon_n2self.calc(sinogram)
+    img_n2self = recon_n2self.calc(sinogram, theta)
 
     recon_n2self_learned.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
-    img_n2self_learned = recon_n2self_learned.calc(sinogram)
+    img_n2self_learned = recon_n2self_learned.calc(sinogram, theta)
 
 
     recons = [recon_fbp, recon_sart, 

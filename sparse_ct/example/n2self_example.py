@@ -13,13 +13,13 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
-    fname = "../data/shepp_logan.jpg"
+    fname = "../data/benchmark_human/shepp_logan.jpg"
     #fname = "../data/ct1.jpg"
 
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
-            n_proj=32, size=512, angle1=0.0, angle2=180.0, noise_pow=15.0 )
+            n_proj=32, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
     # gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=15.0 )
 

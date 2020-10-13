@@ -50,13 +50,13 @@ def benchmark(
                         angle1=0.0, angle2=180.0, noise_pow=noise_pow)
         # set metrics
         if type(recon) == DgrReconstructor:
-            recon_bm3d = SartBM3DReconstructor('SART+BM3D', theta, 
+            recon_bm3d = SartBM3DReconstructor('SART+BM3D', 
                             sart_n_iter=40, sart_relaxation=0.15,
                             bm3d_sigma=0.5)
-            img_sart_bm3d = recon_bm3d.calc(sinogram)
+            img_sart_bm3d = recon_bm3d.calc(sinogram, theta)
             recon.set_for_metric(gt, img_sart_bm3d, FOCUS=FOCUS, log_dir='../log/dip')
 
-        recon.calc(sinogram)
+        recon.calc(sinogram, theta)
         mse, psnr, ssim = recon.eval(gt)
         mse_list.append(mse)
         psnr_list.append(psnr)

@@ -81,7 +81,6 @@ class N2SelfReconstructor(Reconstructor):
         n2self_selfsupervised=True,
         n2self_proj_ratio=0.2):
         super(N2SelfReconstructor, self).__init__(name)
-        self.n_proj = len(angles)
         self.n_iter = n2self_n_iter
         self.n2self_proj_ratio = n2self_proj_ratio
         assert net in ['skip', 'unet', 'skipV2']
@@ -207,6 +206,7 @@ class N2SelfReconstructor(Reconstructor):
 
     def calc(self, projs, theta):
         self.theta = torch.from_numpy(theta).type(self.DTYPE)
+        self.n_proj = len(theta)
         if self.selfsupervised:
             return self._calc_unsupervised(projs, theta)
         else:

@@ -6,7 +6,8 @@ import numpy as np
 
 from sparse_ct.reconstructor_2d import (
                                 SartBM3DReconstructor,
-                                DgrReconstructor,)
+                                DgrReconstructor,
+                                N2SelfReconstructor)
 from . import image_to_sparse_sinogram
 
 
@@ -49,7 +50,7 @@ def benchmark(
                         channel=1, n_proj=len(theta), size=512,
                         angle1=0.0, angle2=180.0, noise_pow=noise_pow)
         # set metrics
-        if type(recon) == DgrReconstructor:
+        if type(recon) == DgrReconstructor or type(recon) == N2SelfReconstructor:
             recon_bm3d = SartBM3DReconstructor('SART+BM3D', 
                             sart_n_iter=40, sart_relaxation=0.15,
                             bm3d_sigma=0.5)

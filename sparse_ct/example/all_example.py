@@ -12,11 +12,11 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
-    fname = "../data/benchmark_human/ct1.jpg"
+    fname = "../data/benchmark_human/shepp_logan.jpg"
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
-            n_proj=145, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
+            n_proj=32, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
    
     #print(gt.shape, gt.dtype, gt.max(), gt.min())
     #print(sinogram.shape, sinogram.dtype, sinogram.max(), sinogram.min())
@@ -31,7 +31,7 @@ if __name__ == "__main__":
                                 bm3d_sigma=0.3)
 
     recon_dip = DgrReconstructor('DGR',
-                                dip_n_iter=1000, 
+                                dip_n_iter=8000, 
                                 net='skip',
                                 lr=0.01,
                                 reg_std=1./100,
@@ -40,7 +40,7 @@ if __name__ == "__main__":
                                 w_tv_loss=0.0
                             )
     recon_dip_rand = DgrReconstructor('RDGR', 
-                                dip_n_iter=1000, 
+                                dip_n_iter=8000, 
                                 net='skip',
                                 lr=0.01,
                                 reg_std=1./100,

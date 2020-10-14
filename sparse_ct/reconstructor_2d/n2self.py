@@ -88,7 +88,6 @@ class N2SelfReconstructor(Reconstructor):
         
 
         # net
-        self.net = self._get_net(net)
         self.weights = n2self_weights
         self.selfsupervised = n2self_selfsupervised
         if self.weights:
@@ -98,7 +97,6 @@ class N2SelfReconstructor(Reconstructor):
 
         # loss functions and optimization
         self.mse = torch.nn.MSELoss().to(self.DEVICE)
-        
         self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
         self.i_iter = 0
 
@@ -205,8 +203,18 @@ class N2SelfReconstructor(Reconstructor):
         return self.image_r
 
     def calc(self, projs, theta):
+        # reinit everything
         self.theta = torch.from_numpy(theta).type(self.DTYPE)
         self.n_proj = len(theta)
+        self.loss_hist = []
+        self.rmse_hist = []
+        self.ssim_hist = []
+        self.psnr_hist = []
+        self.net = self._get_net(self.net)
+        if self.weights:
+            self._load(self.weights)
+        self.best_result = None
+
         if self.selfsupervised:
             return self._calc_unsupervised(projs, theta)
         else:

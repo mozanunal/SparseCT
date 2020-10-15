@@ -44,7 +44,7 @@ class DgrReconstructor(Reconstructor):
          w_ssim_loss=0.0, w_tv_loss=0.0, randomize_projs=None):
         super(DgrReconstructor, self).__init__(name)
         self.n_iter = dip_n_iter
-        assert net in ['skip', 'unet']
+        assert net in ['skip', 'skipV2', 'unet']
         self.net = net
         self.lr = lr
         self.reg_std = reg_std
@@ -205,6 +205,12 @@ class DgrReconstructor(Reconstructor):
                 upsample_mode='nearest',
                 num_channels_down=[16, 32, 64, 128, 256], 
                 num_channels_up=[16, 32, 64, 128, 256]).to(self.DEVICE)
+        elif self.net == 'skipV2':
+            return Skip(num_input_channels=self.INPUT_DEPTH,
+                num_output_channels=self.IMAGE_DEPTH,
+                upsample_mode='nearest',
+                num_channels_down=[32, 64, 128, 256, 512], 
+                num_channels_up=[32, 64, 128, 256, 512]).to(self.DEVICE)
         elif self.net == 'unet':
             return UNet(num_input_channels=self.INPUT_DEPTH, num_output_channels=self.IMAGE_DEPTH,
                     feature_scale=4, more_layers=0, concat_x=False,

@@ -86,19 +86,10 @@ class N2SelfReconstructor(Reconstructor):
         assert net in ['skip', 'unet', 'skipV2']
         self.lr = lr
         
-
         # net
+        self.net_type = net
         self.weights = n2self_weights
         self.selfsupervised = n2self_selfsupervised
-        if self.weights:
-            self._load(self.weights)
-        s  = sum([np.prod(list(p.size())) for p in self.net.parameters()]); 
-        print ('Number of params: %d' % s)
-
-        # loss functions and optimization
-        self.mse = torch.nn.MSELoss().to(self.DEVICE)
-        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
-        self.i_iter = 0
 
         # for testing
         self.gt = None
@@ -203,6 +194,7 @@ class N2SelfReconstructor(Reconstructor):
         return self.image_r
 
     def calc(self, projs, theta):
+
         # reinit everything
         self.theta = torch.from_numpy(theta).type(self.DTYPE)
         self.n_proj = len(theta)
@@ -210,10 +202,14 @@ class N2SelfReconstructor(Reconstructor):
         self.rmse_hist = []
         self.ssim_hist = []
         self.psnr_hist = []
-        self.net = self._get_net(self.net)
+        self.net = self._get_net(self.net_type)
         if self.weights:
             self._load(self.weights)
         self.best_result = None
+        # loss functions and optimization
+        self.mse = torch.nn.MSELoss().to(self.DEVICE)
+        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
+        self.i_iter = 0
 
         if self.selfsupervised:
             return self._calc_unsupervised(projs, theta)

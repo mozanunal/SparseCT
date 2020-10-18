@@ -161,7 +161,7 @@ def sparse_image(
 elipData = EllipsesDataset(
         image_size = 360,
         train_len = 32000,
-        validation_len = 3200,
+        validation_len = 1000,
         test_len = 0,
         )
 
@@ -173,7 +173,7 @@ def ellipses_to_sparse_sinogram(
     angle2=180.0,
     channel=1,
     size=512,
-    noise_pow=15.0
+    noise_pow=25.0
 ):
     gt = np.array(next(elipData.generator(part=part))).astype('float64')
     gt = pad_to_square(gt, size_big=size)
@@ -197,7 +197,7 @@ def image_to_sparse_sinogram(
     angle2=180.0,
     channel=1,
     size=512,
-    noise_pow=15.0
+    noise_pow=25.0
 ):
     raw_img = io.imread(image_path, as_gray=gray).astype('float64')
     if raw_img.max() > 300: # for low dose ct dataset

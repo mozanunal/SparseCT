@@ -13,7 +13,8 @@ from skimage.metrics import (
 
 from pytorch_radon import Radon, IRadon
 
-from sparse_ct.data import image_to_sparse_sinogram
+from sparse_ct.data import (image_to_sparse_sinogram, 
+                        ellipses_to_sparse_sinogram)
 from sparse_ct.model.unet import UNet
 from sparse_ct.model.skip import Skip
 from sparse_ct.tool import im2tensor, plot_grid, np_to_torch, torch_to_np
@@ -37,7 +38,7 @@ class Dataset(torch.utils.data.Dataset):
     def __init__(self, file_list, 
                 return_gt=False,
                 n_proj=32,
-                noise_pow=15.0,
+                noise_pow=25.0,
                 img_size=512):
         self.file_list = file_list
         self.return_gt = return_gt
@@ -64,6 +65,40 @@ class Dataset(torch.utils.data.Dataset):
         else:
             return np.expand_dims(sinogram, axis=0)      
 
+class EllipsesDataset(torch.utils.data.Dataset):
+    def __init__(self, ellipses_type, 
+                return_gt=False,
+                n_proj=32,
+                noise_pow=25.0,
+                img_size=512):
+        self.ellipses_type = ellipses_type
+        self.return_gt = return_gt
+        self.noise_pow = noise_pow
+        self.n_proj = n_proj
+        self.size = img_size
+
+    def __len__(self):
+        if self.ellipses_type == 'train':
+            return 32000
+        elif self.ellipses_type == 'validation':
+            return 1000
+
+    def __getitem__(self, index):
+        # get image
+        gt, sinogram, _, _ = ellipses_to_sparse_sinogram(
+            part=self.ellipses_type,
+            gray=True,
+            n_proj=self.n_proj,
+            channel=1,
+            size=self.size,
+            noise_pow=self.noise_pow
+            )
+        # get projs
+        if self.return_gt:
+            return np.expand_dims(sinogram, axis=0), np.expand_dims(gt, axis=0)
+        else:
+            return np.expand_dims(sinogram, axis=0)
+
 
 class N2SelfReconstructor(Reconstructor):
     DEVICE = 'cuda'
@@ -72,7 +107,7 @@ class N2SelfReconstructor(Reconstructor):
     IMAGE_DEPTH = 1
     IMAGE_SIZE = 512
     SHOW_EVERY = 50
-    SAVE_EVERY = 600
+    SAVE_EVERY = 1000
 
     def __init__(self, name,
         net='skip', lr=0.001,
@@ -192,6 +227,16 @@ class N2SelfReconstructor(Reconstructor):
         x_iter_npy = np.clip(torch_to_np(x_iter), 0, 1).astype(np.float64)
         self.image_r = x_iter_npy.copy()
         return self.image_r
+
+    def init_train(self, theta):
+        self.theta = torch.from_numpy(theta).type(self.DTYPE)
+        self.n_proj = len(theta)
+        self.net = self._get_net(self.net_type)
+        if self.weights:
+            self._load(self.weights)
+        self.mse = torch.nn.MSELoss().to(self.DEVICE)
+        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
+        self.i_iter = 0
 
     def calc(self, projs, theta):
 

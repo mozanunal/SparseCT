@@ -19,7 +19,7 @@ logging.basicConfig(
  
 
 
-def test(fname, label, n_proj=32, noise_pow=15.0):
+def test(fname, label, n_proj=32, noise_pow=25.0):
 
     
     dgr_iter = 4000
@@ -41,15 +41,15 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
     logging.warning('dgr_noise_std: %s', noise_std)
 
     recons = [
-        IRadonReconstructor('FBP', theta),
-        SartReconstructor('SART', theta, sart_n_iter=40, sart_relaxation=0.15),
-        SartTVReconstructor('SART+TV', theta, 
+        IRadonReconstructor('FBP'),
+        SartReconstructor('SART', sart_n_iter=40, sart_relaxation=0.15),
+        SartTVReconstructor('SART+TV', 
                                     sart_n_iter=40, sart_relaxation=0.15,
                                     tv_weight=0.5, tv_n_iter=100),
-        SartBM3DReconstructor('SART+BM3D', theta, 
+        SartBM3DReconstructor('SART+BM3D', 
                                     sart_n_iter=40, sart_relaxation=0.15,
                                     bm3d_sigma=0.5),    
-        DgrReconstructor('DIP_1.00_0.00_0.00_0.00', theta,
+        DgrReconstructor('DIP_1.00_0.00_0.00_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -58,7 +58,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.0,
                          w_tv_loss=0.0
                          ),
-        DgrReconstructor('DIP_0.99_0.01_0.00_0.00', theta,
+        DgrReconstructor('DIP_0.99_0.01_0.00_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -67,7 +67,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.01,
                          w_tv_loss=0.0
                          ),
-        DgrReconstructor('DIP_0.90_0.10_0.00_0.00', theta,
+        DgrReconstructor('DIP_0.90_0.10_0.00_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -76,7 +76,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.10,
                          w_tv_loss=0.0
                          ),
-        DgrReconstructor('DIP_0.50_0.50_0.00_0.00', theta,
+        DgrReconstructor('DIP_0.50_0.50_0.00_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -85,7 +85,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.5,
                          w_tv_loss=0.0
                          ),
-        DgrReconstructor('DIP_0.10_0.90_0.00_0.00', theta,
+        DgrReconstructor('DIP_0.10_0.90_0.00_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -94,7 +94,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.90,
                          w_tv_loss=0.0
                          ),
-        DgrReconstructor('DIP_0.01_0.99_0.00_0.00', theta,
+        DgrReconstructor('DIP_0.01_0.99_0.00_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -103,7 +103,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.99,
                          w_tv_loss=0.0
                          ),
-        DgrReconstructor('DIP_0.00_1.00_0.00_0.00', theta,
+        DgrReconstructor('DIP_0.00_1.00_0.00_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -112,7 +112,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=1.0,
                          w_tv_loss=0.0
                          ),
-        DgrReconstructor('DIP_0.99_0.00_0.01_0.00', theta,
+        DgrReconstructor('DIP_0.99_0.00_0.01_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -121,7 +121,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.0,
                          w_tv_loss=0.01
                          ),
-        DgrReconstructor('DIP_0.90_0.00_0.10_0.00', theta,
+        DgrReconstructor('DIP_0.90_0.00_0.10_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -130,7 +130,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.0,
                          w_tv_loss=0.1
                          ),
-        DgrReconstructor('DIP_0.50_0.00_0.50_0.00', theta,
+        DgrReconstructor('DIP_0.50_0.00_0.50_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -139,7 +139,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.0,
                          w_tv_loss=0.5
                          ),
-        DgrReconstructor('DIP_0.10_0.00_0.90_0.00', theta,
+        DgrReconstructor('DIP_0.10_0.00_0.90_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -148,7 +148,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.0,
                          w_tv_loss=0.9
                          ),
-        DgrReconstructor('DIP_0.01_0.00_0.99_0.00', theta,
+        DgrReconstructor('DIP_0.01_0.00_0.99_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -157,7 +157,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.0,
                          w_tv_loss=0.99
                          ),
-        DgrReconstructor('DIP_0.00_0.00_1.0_0.00', theta,
+        DgrReconstructor('DIP_0.00_0.00_1.0_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -169,7 +169,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
 
 
 
-        DgrReconstructor('DIP_0.33_0.33_0.33_0.00', theta,
+        DgrReconstructor('DIP_0.33_0.33_0.33_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -178,7 +178,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.33,
                          w_tv_loss=0.33
                          ),
-        DgrReconstructor('DIP_0.8_0.10_0.10_0.00', theta,
+        DgrReconstructor('DIP_0.8_0.10_0.10_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -187,7 +187,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.1,
                          w_tv_loss=0.1
                          ),
-        DgrReconstructor('DIP_0.98_0.01_0.01_0.00', theta,
+        DgrReconstructor('DIP_0.98_0.01_0.01_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -197,7 +197,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_tv_loss=0.01
                          ),
 
-        DgrReconstructor('DIP_0.10_0.80_0.10_0.00', theta,
+        DgrReconstructor('DIP_0.10_0.80_0.10_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -206,7 +206,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
                          w_perceptual_loss=0.80,
                          w_tv_loss=0.10
                          ),
-        DgrReconstructor('DIP_0.01_0.98_0.01_0.00', theta,
+        DgrReconstructor('DIP_0.01_0.98_0.01_0.00',
                          dip_n_iter=dgr_iter,
                          net=net,
                          lr=lr,
@@ -218,7 +218,7 @@ def test(fname, label, n_proj=32, noise_pow=15.0):
 
     ]
 
-    img_sart_bm3d = recons[3].calc(sinogram)
+    img_sart_bm3d = recons[3].calc(sinogram, theta)
 
     imgs = []
     for recon in recons:

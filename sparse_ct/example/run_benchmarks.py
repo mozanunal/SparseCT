@@ -64,13 +64,13 @@ recon_n2s_selfsuper = N2SelfReconstructor('N2Self_SelfSupervised0.2',
 
 recon_n2s_singleshot = N2SelfReconstructor('N2SelfLearned_NoIt_03ep8',
                         n2self_n_iter=4001, n2self_proj_ratio=0.2,
-                        n2self_weights='training-03/epoch_8.pth',
+                        n2self_weights='training-05/iter_108000.pth',#'training-04/iter_100000.pth',
                         n2self_selfsupervised=False,
                         net='skipV2', lr=0.01, )
 
 recon_learned_selfsuper = N2SelfReconstructor('N2SelfLearned_It_03ep8',
                         n2self_n_iter=4001, n2self_proj_ratio=0.2,
-                        n2self_weights='training-03/epoch_8.pth',
+                        n2self_weights='training-05/iter_108000.pth',#'training-04/iter_100000.pth',
                         n2self_selfsupervised=True,
                         net='skipV2', lr=0.01, )
 
@@ -88,28 +88,11 @@ if __name__ == "__main__":
                 ]
 
     benchmark_all(
-        recon_fbp,
+        recon_n2s_singleshot,
         data_list,
         theta_list
     )
 
-    benchmark_all(
-        recon_sart,
-        data_list,
-        theta_list
-    )
-    
-    benchmark_all(
-        recon_sart_tv,
-        data_list,
-        theta_list
-    )
-
-    benchmark_all(
-        recon_sart_bm3d,
-        data_list,
-        theta_list
-    )
 
 
 

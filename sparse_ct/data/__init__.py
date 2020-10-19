@@ -216,12 +216,11 @@ def image_to_sparse_sinogram(
     raw_img = io.imread(image_path, as_gray=gray).astype('float64')
     if raw_img.max() > 300: # for low dose ct dataset
         pass
-        # mean, std = raw_img.mean(), raw_img.std()
-        # upper, lower = (mean+ 2*std, mean-2*std )
-        # raw_img = (raw_img - lower) / (upper-lower)
-        raw_img = (raw_img - raw_img.min()) / (raw_img.max()-raw_img.min())
-        # raw_img = raw_img +1200 -32768.0
-        # raw_img = raw_img / (raw_img.max())#(raw_img.mean() + 3*raw_img.std())
+        mean, std = raw_img.mean(), raw_img.std()
+        raw_img = raw_img -32768.0 # convert HU
+        uplim = 600
+        downlim = 300
+        raw_img = (raw_img + downlim) / (uplim+downlim)
         raw_img = np.clip(raw_img, 0.0, 1.0)
     else:
         raw_img = raw_img / raw_img.max()

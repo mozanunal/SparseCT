@@ -40,13 +40,13 @@ if __name__ == "__main__":
 
     recon_n2self_learned_single = N2SelfReconstructor('N2Self_Learned_SingleShot',
                 n2self_n_iter=4001, n2self_proj_ratio=0.05,
-                n2self_weights='training-04/iter_82000.pth',
+                n2self_weights='training-05/iter_108000.pth',
                 n2self_selfsupervised=False,
                 net='skipV2', lr=0.01, )
 
     recon_n2self_learned_selfsuper = N2SelfReconstructor('N2Self_Learned_SelfSupervised',
                 n2self_n_iter=4001, n2self_proj_ratio=0.05,
-                n2self_weights='training-04/iter_82000.pth',
+                n2self_weights='training-05/iter_108000.pth',
                 n2self_selfsupervised=True,
                 net='skipV2', lr=0.01, )
 

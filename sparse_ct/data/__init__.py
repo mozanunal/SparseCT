@@ -215,8 +215,8 @@ def image_to_sparse_sinogram(
     mask = create_circular_mask(size,size)
     raw_img = io.imread(image_path, as_gray=gray).astype('float64') 
     if raw_img.max() > 300: # for low dose ct dataset
-        raw_img = raw_img - 31744.0# 31568 1800
-        raw_img = raw_img / 4096.0 # 31744 4096
+        raw_img = raw_img - 31568.0 # 31568 1800
+        raw_img = raw_img / 1800.0 # 31744 4096
     else:
         raw_img = raw_img / raw_img.max()
     gt = resize(pad_to_square(raw_img), (size, size)) * mask

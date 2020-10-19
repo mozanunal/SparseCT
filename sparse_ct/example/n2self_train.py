@@ -44,7 +44,7 @@ if __name__ == "__main__":
         EllipsesDataset(
             ellipses_type='train', 
             return_gt=False,
-            n_proj=64,
+            n_proj=32,
             noise_pow=25.0,
             img_size=512),
         **params
@@ -54,13 +54,13 @@ if __name__ == "__main__":
         EllipsesDataset(
             ellipses_type='validation',
             return_gt=True,
-            n_proj=64,
+            n_proj=32,
             noise_pow=25.0,
             img_size=512),
         **params
     )
 
-    theta = np.linspace(0.0, 180.0, 64, endpoint=False)
+    theta = np.linspace(0.0, 180.0, 32, endpoint=False)
 
     recon_n2self = N2SelfReconstructor(
         'N2SelfTrained',

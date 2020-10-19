@@ -48,6 +48,18 @@ def pad_to_square(img, size_big=None):
         ])
     return img
 
+def create_circular_mask(h, w, center=None, radius=None):
+    if center is None: # use the middle of the image
+        center = (int(w/2), int(h/2))
+    if radius is None: # use the smallest distance between the center and image walls
+        radius = min(center[0], center[1], w-center[0], h-center[1])
+
+    Y, X = np.ogrid[:h, :w]
+    dist_from_center = np.sqrt((X - center[0])**2 + (Y-center[1])**2)
+
+    mask = dist_from_center <= radius
+    return mask
+
 
 def noisy_zebra(
     noise_level=0.35,
@@ -135,7 +147,7 @@ def sparse_image(
 ):
     raw_img = io.imread(image_path, as_gray=gray).astype('float64')
     if raw_img.max() > 300: # for low dose ct dataset
-        raw_img = raw_img - 31744.0
+        raw_img = raw_img - 31744.0# 32168 1800
         raw_img = raw_img / 4096.0
     else:
         raw_img = raw_img / raw_img.max()
@@ -159,7 +171,7 @@ def sparse_image(
 
 
 elipData = EllipsesDataset(
-        image_size = 360,
+        image_size = 512,
         train_len = 32000,
         validation_len = 1000,
         test_len = 0,
@@ -175,8 +187,9 @@ def ellipses_to_sparse_sinogram(
     size=512,
     noise_pow=25.0
 ):
+    mask = create_circular_mask(size,size)
     gt = np.array(next(elipData.generator(part=part))).astype('float64')
-    gt = pad_to_square(gt, size_big=size)
+    gt = pad_to_square(gt, size_big=size) * mask
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
     sinogram = awgn(sinogram, noise_pow)
@@ -199,13 +212,14 @@ def image_to_sparse_sinogram(
     size=512,
     noise_pow=25.0
 ):
-    raw_img = io.imread(image_path, as_gray=gray).astype('float64')
+    mask = create_circular_mask(size,size)
+    raw_img = io.imread(image_path, as_gray=gray).astype('float64') 
     if raw_img.max() > 300: # for low dose ct dataset
-        raw_img = raw_img - 31744.0
-        raw_img = raw_img / 4096.0
+        raw_img = raw_img - 31744.0# 31568 1800
+        raw_img = raw_img / 4096.0 # 31744 4096
     else:
         raw_img = raw_img / raw_img.max()
-    gt = resize(pad_to_square(raw_img), (size, size))
+    gt = resize(pad_to_square(raw_img), (size, size)) * mask
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
     sinogram = awgn(sinogram, noise_pow)

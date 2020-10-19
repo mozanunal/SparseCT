@@ -213,10 +213,16 @@ def image_to_sparse_sinogram(
     noise_pow=25.0
 ):
     mask = create_circular_mask(size,size)
-    raw_img = io.imread(image_path, as_gray=gray).astype('float64') 
+    raw_img = io.imread(image_path, as_gray=gray).astype('float64')
     if raw_img.max() > 300: # for low dose ct dataset
-        raw_img = raw_img - 31568.0 # 31568 1800
-        raw_img = raw_img / 1800.0 # 31744 4096
+        pass
+        # mean, std = raw_img.mean(), raw_img.std()
+        # upper, lower = (mean+ 2*std, mean-2*std )
+        # raw_img = (raw_img - lower) / (upper-lower)
+        raw_img = (raw_img - raw_img.min()) / (raw_img.max()-raw_img.min())
+        # raw_img = raw_img +1200 -32768.0
+        # raw_img = raw_img / (raw_img.max())#(raw_img.mean() + 3*raw_img.std())
+        raw_img = np.clip(raw_img, 0.0, 1.0)
     else:
         raw_img = raw_img / raw_img.max()
     gt = resize(pad_to_square(raw_img), (size, size)) * mask

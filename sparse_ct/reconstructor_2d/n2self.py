@@ -13,7 +13,8 @@ from skimage.metrics import (
 
 from pytorch_radon import Radon, IRadon
 
-from sparse_ct.data import image_to_sparse_sinogram
+from sparse_ct.data import (image_to_sparse_sinogram, 
+                        ellipses_to_sparse_sinogram)
 from sparse_ct.model.unet import UNet
 from sparse_ct.model.skip import Skip
 from sparse_ct.tool import im2tensor, plot_grid, np_to_torch, torch_to_np
@@ -37,7 +38,7 @@ class Dataset(torch.utils.data.Dataset):
     def __init__(self, file_list, 
                 return_gt=False,
                 n_proj=32,
-                noise_pow=15.0,
+                noise_pow=25.0,
                 img_size=512):
         self.file_list = file_list
         self.return_gt = return_gt
@@ -64,6 +65,40 @@ class Dataset(torch.utils.data.Dataset):
         else:
             return np.expand_dims(sinogram, axis=0)      
 
+class EllipsesDataset(torch.utils.data.Dataset):
+    def __init__(self, ellipses_type, 
+                return_gt=False,
+                n_proj=32,
+                noise_pow=25.0,
+                img_size=512):
+        self.ellipses_type = ellipses_type
+        self.return_gt = return_gt
+        self.noise_pow = noise_pow
+        self.n_proj = n_proj
+        self.size = img_size
+
+    def __len__(self):
+        if self.ellipses_type == 'train':
+            return 32000
+        elif self.ellipses_type == 'validation':
+            return 1000
+
+    def __getitem__(self, index):
+        # get image
+        gt, sinogram, _, _ = ellipses_to_sparse_sinogram(
+            part=self.ellipses_type,
+            gray=True,
+            n_proj=self.n_proj,
+            channel=1,
+            size=self.size,
+            noise_pow=self.noise_pow
+            )
+        # get projs
+        if self.return_gt:
+            return np.expand_dims(sinogram, axis=0), np.expand_dims(gt, axis=0)
+        else:
+            return np.expand_dims(sinogram, axis=0)
+
 
 class N2SelfReconstructor(Reconstructor):
     DEVICE = 'cuda'
@@ -72,36 +107,24 @@ class N2SelfReconstructor(Reconstructor):
     IMAGE_DEPTH = 1
     IMAGE_SIZE = 512
     SHOW_EVERY = 50
-    SAVE_EVERY = 600
+    SAVE_EVERY = 1000
 
-    def __init__(self, name, angles,
+    def __init__(self, name,
         net='skip', lr=0.001,
         n2self_n_iter=8000, 
         n2self_weights=None,
         n2self_selfsupervised=True,
         n2self_proj_ratio=0.2):
-        super(N2SelfReconstructor, self).__init__(name, angles)
-        self.n_proj = len(angles)
+        super(N2SelfReconstructor, self).__init__(name)
         self.n_iter = n2self_n_iter
         self.n2self_proj_ratio = n2self_proj_ratio
         assert net in ['skip', 'unet', 'skipV2']
         self.lr = lr
-        self.theta = torch.from_numpy(angles).type(self.DTYPE)
-
+        
         # net
-        self.net = self._get_net(net)
+        self.net_type = net
         self.weights = n2self_weights
         self.selfsupervised = n2self_selfsupervised
-        if self.weights:
-            self._load(self.weights)
-        s  = sum([np.prod(list(p.size())) for p in self.net.parameters()]); 
-        print ('Number of params: %d' % s)
-
-        # loss functions and optimization
-        self.mse = torch.nn.MSELoss().to(self.DEVICE)
-        
-        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
-        self.i_iter = 0
 
         # for testing
         self.gt = None
@@ -127,7 +150,7 @@ class N2SelfReconstructor(Reconstructor):
         self.FOCUS = FOCUS
         self.log_dir = log_dir
 
-    def _calc_unsupervised(self, projs):
+    def _calc_unsupervised(self, projs, theta):
         if not os.path.exists(self.log_dir):
             os.mkdir(self.log_dir)
             
@@ -194,7 +217,7 @@ class N2SelfReconstructor(Reconstructor):
         self.image_r = self.best_result
         return self.image_r
     
-    def _calc_supervised(self, projs):
+    def _calc_supervised(self, projs, theta):
         self.net.eval()
         projs = np_to_torch(projs).type(self.DTYPE)
         ir = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
@@ -205,11 +228,38 @@ class N2SelfReconstructor(Reconstructor):
         self.image_r = x_iter_npy.copy()
         return self.image_r
 
-    def calc(self, projs):
+    def init_train(self, theta):
+        self.theta = torch.from_numpy(theta).type(self.DTYPE)
+        self.n_proj = len(theta)
+        self.net = self._get_net(self.net_type)
+        if self.weights:
+            self._load(self.weights)
+        self.mse = torch.nn.MSELoss().to(self.DEVICE)
+        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
+        self.i_iter = 0
+
+    def calc(self, projs, theta):
+
+        # reinit everything
+        self.theta = torch.from_numpy(theta).type(self.DTYPE)
+        self.n_proj = len(theta)
+        self.loss_hist = []
+        self.rmse_hist = []
+        self.ssim_hist = []
+        self.psnr_hist = []
+        self.net = self._get_net(self.net_type)
+        if self.weights:
+            self._load(self.weights)
+        self.best_result = None
+        # loss functions and optimization
+        self.mse = torch.nn.MSELoss().to(self.DEVICE)
+        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
+        self.i_iter = 0
+
         if self.selfsupervised:
-            return self._calc_unsupervised(projs)
+            return self._calc_unsupervised(projs, theta)
         else:
-            return self._calc_supervised(projs)
+            return self._calc_supervised(projs, theta)
 
     def _get_net(self, net):
         # Init Net

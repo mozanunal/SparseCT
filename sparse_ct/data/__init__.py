@@ -11,22 +11,24 @@ import sys
 
 def db2ratio(db):
     """
-    db=10*log(ratio)
-    ratio=10**(db/10)
+    db=20*log(ratio)
+    ratio=10**(db/20)
     """
-    return 10.0**(db/10.0)
+    return 10.0**(db/20.0)
 
 def awgn(x, noise_pow):
     try:
         k = db2ratio(noise_pow)
         return x + np.random.normal(0.0, x.mean()/k, x.shape )
+        
     except Exception as e:
-        print('awgn error', e, file=sys.stderr,)
+        print('awgn error', e, file=sys.stderr)
         return x
  
 
-def pad_to_square(img):
-    size_big = max(img.shape)+0
+def pad_to_square(img, size_big=None):
+    if size_big == None:
+        size_big = max(img.shape)+0
     h, w = img.shape
     delta_h = size_big - h
     delta_w = size_big - w
@@ -45,6 +47,18 @@ def pad_to_square(img):
             np.zeros((h, delta_w//2))
         ])
     return img
+
+def create_circular_mask(h, w, center=None, radius=None):
+    if center is None: # use the middle of the image
+        center = (int(w/2), int(h/2))
+    if radius is None: # use the smallest distance between the center and image walls
+        radius = min(center[0], center[1], w-center[0], h-center[1])
+
+    Y, X = np.ogrid[:h, :w]
+    dist_from_center = np.sqrt((X - center[0])**2 + (Y-center[1])**2)
+
+    mask = dist_from_center <= radius
+    return mask
 
 
 def noisy_zebra(
@@ -133,7 +147,7 @@ def sparse_image(
 ):
     raw_img = io.imread(image_path, as_gray=gray).astype('float64')
     if raw_img.max() > 300: # for low dose ct dataset
-        raw_img = raw_img - 31744.0
+        raw_img = raw_img - 31744.0# 32168 1800
         raw_img = raw_img / 4096.0
     else:
         raw_img = raw_img / raw_img.max()
@@ -159,7 +173,7 @@ def sparse_image(
 elipData = EllipsesDataset(
         image_size = 512,
         train_len = 32000,
-        validation_len = 3200,
+        validation_len = 1000,
         test_len = 0,
         )
 
@@ -171,9 +185,11 @@ def ellipses_to_sparse_sinogram(
     angle2=180.0,
     channel=1,
     size=512,
-    noise_pow=15.0
+    noise_pow=25.0
 ):
+    mask = create_circular_mask(size,size)
     gt = np.array(next(elipData.generator(part=part))).astype('float64')
+    gt = pad_to_square(gt, size_big=size) * mask
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
     sinogram = awgn(sinogram, noise_pow)
@@ -194,15 +210,20 @@ def image_to_sparse_sinogram(
     angle2=180.0,
     channel=1,
     size=512,
-    noise_pow=15.0
+    noise_pow=25.0
 ):
+    mask = create_circular_mask(size,size)
     raw_img = io.imread(image_path, as_gray=gray).astype('float64')
     if raw_img.max() > 300: # for low dose ct dataset
-        raw_img = raw_img - 31744.0
-        raw_img = raw_img / 4096.0
+        pass
+        raw_img = raw_img -32768.0 # convert HU
+        uplim = 600
+        downlim = 300
+        raw_img = (raw_img + downlim) / (uplim+downlim)
+        raw_img = np.clip(raw_img, 0.0, 1.0)
     else:
         raw_img = raw_img / raw_img.max()
-    gt = resize(pad_to_square(raw_img), (size, size))
+    gt = resize(pad_to_square(raw_img), (size, size)) * mask
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
     sinogram = awgn(sinogram, noise_pow)

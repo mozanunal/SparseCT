@@ -35,19 +35,16 @@ class DgrReconstructor(Reconstructor):
     INPUT_DEPTH = 32
     IMAGE_DEPTH = 1
     IMAGE_SIZE = 512
-    ANGLE1 = 0.
-    ANGLE2 = 180.
     SHOW_EVERY = 50
 
-    def __init__(self, name, angles,
+    def __init__(self, name,
         dip_n_iter=8000, net='skip',
         lr=0.001, reg_std=1./100,
          w_proj_loss=1.0, w_perceptual_loss=0.0, 
          w_ssim_loss=0.0, w_tv_loss=0.0, randomize_projs=None):
-        super(DgrReconstructor, self).__init__(name, angles)
-        self.N_PROJ = len(angles)
+        super(DgrReconstructor, self).__init__(name)
         self.n_iter = dip_n_iter
-        assert net in ['skip', 'unet']
+        assert net in ['skip', 'skipV2', 'unet']
         self.net = net
         self.lr = lr
         self.reg_std = reg_std
@@ -61,9 +58,7 @@ class DgrReconstructor(Reconstructor):
         self.mse = torch.nn.MSELoss().to(self.DEVICE)
         self.ssim = MS_SSIM(data_range=1.0, size_average=True, channel=self.IMAGE_DEPTH).to(self.DEVICE)
         self.perceptual = VGGPerceptualLoss(resize=True).to(self.DEVICE)
-        self.theta = torch.linspace(self.ANGLE1, self.ANGLE2, self.N_PROJ).to(self.DEVICE)
-        self.radon = Radon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
-        self.iradon = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
+
         self.gt = None
         self.noisy = None
         self.FOCUS = None
@@ -107,13 +102,15 @@ class DgrReconstructor(Reconstructor):
             ssim_l = self.w_ssim_loss * (1 - self.ssim(x_iter, x_initial.detach() ))
         return proj_l +  percep_l +  tv_l + ssim_l
 
-    def _calc_start_loss(self, x_iter, projs, x_initial):
-        norm = transforms.Normalize(projs[0].mean((1,2)), projs[0].std((1,2)))
-        percep_l = self.perceptual(x_iter, x_initial.detach())
-        proj_l = self.mse(norm(self.radon(x_iter)[0]), norm(projs[0]))
-        return proj_l + percep_l
 
-    def calc(self, projs):
+    def calc(self, projs, theta):
+        # recon params
+        self.N_PROJ = len(theta)
+        self.theta = torch.from_numpy(theta).to(self.DEVICE)
+        self.radon = Radon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
+        self.iradon = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
+
+        # start recon
         if not os.path.exists(self.log_dir):
             os.mkdir(self.log_dir)
 
@@ -133,8 +130,8 @@ class DgrReconstructor(Reconstructor):
         # Optimizer
         optimizer = torch.optim.Adam(net.parameters(), lr=self.lr)
         cur_lr = self.lr
-        projs = np_to_torch(projs).type(self.DTYPE) # self.radon(img_gt_torch).detach().clone()
-        
+        projs = np_to_torch(projs).type(self.DTYPE)#self.radon(img_gt_torch).detach().clone()
+        #np_to_torch(projs).type(self.DTYPE) # 
         # Iterations
         loss_hist = []
         rmse_hist = []
@@ -208,6 +205,12 @@ class DgrReconstructor(Reconstructor):
                 upsample_mode='nearest',
                 num_channels_down=[16, 32, 64, 128, 256], 
                 num_channels_up=[16, 32, 64, 128, 256]).to(self.DEVICE)
+        elif self.net == 'skipV2':
+            return Skip(num_input_channels=self.INPUT_DEPTH,
+                num_output_channels=self.IMAGE_DEPTH,
+                upsample_mode='nearest',
+                num_channels_down=[32, 64, 128, 256, 512], 
+                num_channels_up=[32, 64, 128, 256, 512]).to(self.DEVICE)
         elif self.net == 'unet':
             return UNet(num_input_channels=self.INPUT_DEPTH, num_output_channels=self.IMAGE_DEPTH,
                     feature_scale=4, more_layers=0, concat_x=False,

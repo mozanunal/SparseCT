@@ -14,14 +14,14 @@ from sparse_ct.reconstructor_2d import (
 if __name__ == "__main__":
 
     #fname = "../data/benchmark_human/shepp_logan.jpg"
-    fname = "../data/benchmark_human/10.png"
+    fname = "../data/benchmark_human/20.png"
 
 
 
-    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
-            n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
-    # gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
+    # gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
+    gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
+            n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=35.0 )
 
     recon_fbp = IRadonReconstructor('FBP')
     recon_sart = SartReconstructor('SART',
@@ -34,19 +34,19 @@ if __name__ == "__main__":
                                 bm3d_sigma=0.35)
 
     recon_n2self_selfsuper = N2SelfReconstructor('N2Self_SelfSupervised',
-                n2self_n_iter=4001, n2self_proj_ratio=0.05,
+                n2self_n_iter=4001, n2self_proj_ratio=0.2,
                 n2self_weights=None, n2self_selfsupervised=True,
                 net='skipV2', lr=0.01, )
 
     recon_n2self_learned_single = N2SelfReconstructor('N2Self_Learned_SingleShot',
-                n2self_n_iter=4001, n2self_proj_ratio=0.05,
-                n2self_weights='training-05/iter_108000.pth',
+                n2self_n_iter=4001, n2self_proj_ratio=0.2,
+                n2self_weights='iter_95000.pth',
                 n2self_selfsupervised=False,
                 net='skipV2', lr=0.01, )
 
     recon_n2self_learned_selfsuper = N2SelfReconstructor('N2Self_Learned_SelfSupervised',
-                n2self_n_iter=4001, n2self_proj_ratio=0.05,
-                n2self_weights='training-05/iter_108000.pth',
+                n2self_n_iter=4001, n2self_proj_ratio=0.2,
+                n2self_weights='iter_95000.pth',
                 n2self_selfsupervised=True,
                 net='skipV2', lr=0.01, )
 

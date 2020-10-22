@@ -57,20 +57,20 @@ recon_rdgr = DgrReconstructor('RDGR_1.00_0.00_0.00',
                         w_tv_loss=0.0,
                         randomize_projs=0.1)
 
-recon_n2s_selfsuper = N2SelfReconstructor('N2Self_SelfSupervised0.2',
+recon_n2s_selfsuper = N2SelfReconstructor('N2S_SelfSup_02',
                         n2self_n_iter=4001, n2self_proj_ratio=0.2,
                         n2self_weights=None, n2self_selfsupervised=True,
                         net='skipV2', lr=0.01, )
 
-recon_n2s_singleshot = N2SelfReconstructor('N2SelfLearned_NoIt_03ep8',
+recon_n2s_singleshot = N2SelfReconstructor('N2S_SingleS_02_05',
                         n2self_n_iter=4001, n2self_proj_ratio=0.2,
-                        n2self_weights='training-05/iter_108000.pth',#'training-04/iter_100000.pth',
+                        n2self_weights='iter_95000.pth',#'training-04/iter_100000.pth',
                         n2self_selfsupervised=False,
                         net='skipV2', lr=0.01, )
 
-recon_learned_selfsuper = N2SelfReconstructor('N2SelfLearned_It_03ep8',
+recon_learned_selfsuper = N2SelfReconstructor('N2S_LearSelfSup_02_05',
                         n2self_n_iter=4001, n2self_proj_ratio=0.2,
-                        n2self_weights='training-05/iter_108000.pth',#'training-04/iter_100000.pth',
+                        n2self_weights='iter_95000.pth',#'training-04/iter_100000.pth',
                         n2self_selfsupervised=True,
                         net='skipV2', lr=0.01, )
 
@@ -84,11 +84,12 @@ if __name__ == "__main__":
     data_list = [p_ellipses, p_human]
     theta_list = [
                 np.linspace(0.0, 180.0, 32, endpoint=False),
-                np.linspace(0.0, 180.0, 64, endpoint=False)
+                np.linspace(0.0, 180.0, 64, endpoint=False),
+                # np.linspace(0.0, 180.0, 128, endpoint=False),
                 ]
 
     benchmark_all(
-        recon_n2s_singleshot,
+        recon_learned_selfsuper,
         data_list,
         theta_list
     )

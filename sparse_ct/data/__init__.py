@@ -14,7 +14,7 @@ def db2ratio(db):
     db=20*log(ratio)
     ratio=10**(db/20)
     """
-    return 20.0**(db/10.0)
+    return 10.0**(db/20.0)
 
 def awgn(x, noise_pow):
     try:
@@ -22,7 +22,7 @@ def awgn(x, noise_pow):
         return x + np.random.normal(0.0, x.mean()/k, x.shape )
         
     except Exception as e:
-        print('awgn error', e, file=sys.stderr,)
+        print('awgn error', e, file=sys.stderr)
         return x
  
 
@@ -216,7 +216,6 @@ def image_to_sparse_sinogram(
     raw_img = io.imread(image_path, as_gray=gray).astype('float64')
     if raw_img.max() > 300: # for low dose ct dataset
         pass
-        mean, std = raw_img.mean(), raw_img.std()
         raw_img = raw_img -32768.0 # convert HU
         uplim = 600
         downlim = 300

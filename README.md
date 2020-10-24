@@ -22,7 +22,7 @@ This repo is a tool to develop sparse view CT reconstruction projects and compar
 
 Example resuls from from [this paper]().
 
-![](https://raw.githubusercontent.com/mozanunal/SparseCT/master/docs/images/results2.png)
+![](https://raw.githubusercontent.com/mozanunal/SparseCT/master/docs/images/result2.png)
 
 
 

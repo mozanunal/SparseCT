@@ -1,3 +1,12 @@
+# ##############################################################
+# This file is received from
+# https://github.com/DmitryUlyanov/deep-image-prior/blob/master/models/downsampler.py
+# The code is licenced under Apache 2.0 licence
+# https://github.com/DmitryUlyanov/deep-image-prior/blob/master/LICENSE
+# Please also checkout awesome work from these guys
+# https://openaccess.thecvf.com/content_cvpr_2018/papers/Ulyanov_Deep_Image_Prior_CVPR_2018_paper.pdf
+# ##############################################################
+
 import numpy as np
 import torch
 import torch.nn as nn 

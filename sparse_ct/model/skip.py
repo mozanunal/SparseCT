@@ -1,3 +1,15 @@
+# ##############################################################
+# This file is received from
+# https://github.com/DmitryUlyanov/deep-image-prior/blob/master/models/skip.py
+# It is the implementation of the following study:
+# https://arxiv.org/abs/1711.09485
+# The code is licenced under Apache 2.0 licence
+# https://github.com/DmitryUlyanov/deep-image-prior/blob/master/LICENSE
+# Please also checkout awesome work from these guys
+# https://openaccess.thecvf.com/content_cvpr_2018/papers/Ulyanov_Deep_Image_Prior_CVPR_2018_paper.pdf
+# ##############################################################
+
+
 import torch
 import torch.nn as nn
 from .common import *

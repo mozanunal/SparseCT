@@ -51,10 +51,11 @@ Please
 ## Acknowledgements
 
 In this code repository the packages in requirement.txt are used.
-There are some code parts from following code repositories to port the methods for CT reconstruction in more 
+There are some code parts from following code repositories are used directly to port the methods for CT reconstruction.
 
 - Noise2Self [[code]](https://github.com/czbiohub/noise2self) [[paper]](https://arxiv.org/abs/1901.11365)
 - Deep Image prior [[code]](https://github.com/DmitryUlyanov/deep-image-prior) [[paper]](https://openaccess.thecvf.com/content_cvpr_2018/papers/Ulyanov_Deep_Image_Prior_CVPR_2018_paper.pdf)
+
 
 
 ## Licence

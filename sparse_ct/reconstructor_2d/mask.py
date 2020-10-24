@@ -1,3 +1,15 @@
+# ##############################################################
+# This file is received from
+# - https://github.com/czbiohub/noise2self/blob/master/mask.py
+# It is masking mechanisim implementation from noise2self paper.
+# The code is licenced under MIT licence
+# https://github.com/czbiohub/noise2self/blob/master/LICENSE
+# Please also checkout awesome work from these guys
+# https://arxiv.org/abs/1901.11365
+# ##############################################################
+
+
+
 import numpy as np
 import torch
 

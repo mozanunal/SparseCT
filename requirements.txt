@@ -1,6 +1,6 @@
-torch
+torch==1.6.0
+bm3d==3.0.7
 numpy
 pandas
 matplotlib
 scikit-image
-bm3d==3.0.7

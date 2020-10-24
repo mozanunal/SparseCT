@@ -24,6 +24,7 @@ Example resuls from from [this paper]().
 
 ![](https://raw.githubusercontent.com/mozanunal/SparseCT/master/docs/images/result2.png)
 
+From left to right: ground truth, FBP, SART, SART+TV, SART+BM3D, the proposed method (learned self-supervised).
 
 
 ## Install

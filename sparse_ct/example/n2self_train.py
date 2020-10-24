@@ -10,7 +10,7 @@ from sparse_ct.reconstructor_2d.n2self import Dataset, EllipsesDataset, N2SelfRe
 
 if __name__ == "__main__":
 
-    params= {'batch_size': 5,
+    params= {'batch_size': 8,
             'shuffle': True,
             'num_workers': 5}
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     recon_n2self = N2SelfReconstructor(
         'N2SelfTrained',
-        net='skipV2', lr=0.001,
+        net='skip', lr=0.001,
         n2self_n_iter=10, 
         n2self_weights=None,
         n2self_proj_ratio=0.2

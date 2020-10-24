@@ -137,5 +137,6 @@ dmypy.json
 sparse_ct/example/*.png
 sparse_ct/example/*backup*
 
+*.pth.filter
 *.pth
 *.pthsino

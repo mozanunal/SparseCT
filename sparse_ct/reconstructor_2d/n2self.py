@@ -12,6 +12,7 @@ from skimage.metrics import (
 )
 
 from pytorch_radon import Radon, IRadon
+from pytorch_radon.filters import LearnableFilter
 
 from sparse_ct.data import (image_to_sparse_sinogram, 
                         ellipses_to_sparse_sinogram)
@@ -19,6 +20,8 @@ from sparse_ct.model.unet import UNet
 from sparse_ct.model.skip import Skip
 from sparse_ct.tool import im2tensor, plot_grid, np_to_torch, torch_to_np
 from .base import Reconstructor
+from .mask import Masker
+
 
 
 def toSubLists(full, ratio):
@@ -107,7 +110,7 @@ class N2SelfReconstructor(Reconstructor):
     IMAGE_DEPTH = 1
     IMAGE_SIZE = 512
     SHOW_EVERY = 50
-    SAVE_EVERY = 1000
+    SAVE_EVERY = 600
 
     def __init__(self, name,
         net='skip', lr=0.001,
@@ -154,9 +157,8 @@ class N2SelfReconstructor(Reconstructor):
         if not os.path.exists(self.log_dir):
             os.mkdir(self.log_dir)
             
-        projs_torch = np_to_torch(projs).type(self.DTYPE)
-        norm = transforms.Normalize(projs_torch[0].mean((1,2)), projs_torch[0].std((1,2)))
-        full = set(i for i in range(self.n_proj))
+        projs = np_to_torch(projs).type(self.DTYPE)
+        #norm = transforms.Normalize(projs_torch[0].mean((1,2)), projs_torch[0].std((1,2)))
 
         for i in tqdm(range(self.n_iter)):
             
@@ -165,30 +167,29 @@ class N2SelfReconstructor(Reconstructor):
 
             # train
             if i % self.SHOW_EVERY != 0:
-                idx, idxC = toSubLists(full, self.n2self_proj_ratio)
-                tsub = self.theta[idx]
-                tsubC = self.theta[idxC]
+                self.net.train()
+                self.filter.train()
+                net_input, mask = self.masker.mask( projs, self.i_iter % (self.masker.n_masks - 1) )
+                x_iter = self.net(
+                    self.ir(net_input)
+                )
+                loss = self.mse(
+                    self.r(x_iter)*mask,
+                    projs*mask
+                )
             # val
             else:
-                idx, idxC = list(full), list(full)
-                tsub = self.theta
-                tsubC = self.theta
+                self.net.eval()
+                self.filter.eval()
+                x_iter = self.net(
+                    self.ir(projs)
+                )
+                loss = self.mse(
+                    self.r(x_iter),
+                    projs
+                )
 
-            r = Radon(self.IMAGE_SIZE, tsub, True).to(self.DEVICE)
-            ir = IRadon(self.IMAGE_SIZE, tsubC, True).to(self.DEVICE)
-
-            x_iter = self.net(
-                ir(projs_torch[:,:,:,idxC])
-            )
-            loss = self.mse(
-                # norm(r(x_iter)[0]).unsqueeze(0),
-                # norm(projs_torch[:,:,:,idx][0]).unsqueeze(0)
-                r(x_iter),
-                projs_torch[:,:,:,idx]
-            )
-            
             loss.backward()
-            
             self.optimizer.step()
 
             # metric
@@ -212,6 +213,8 @@ class N2SelfReconstructor(Reconstructor):
                         # save network
                         # best_network = [x.detach().cpu() for x in net.parameters()]
                         self.best_result = x_iter_npy.copy() 
+                else:
+                    self.best_result = x_iter_npy.copy()
                 plot_grid([self.gt, x_iter_npy], self.FOCUS, save_name=self.log_dir+'/{}.png'.format(i))
 
         self.image_r = self.best_result
@@ -219,10 +222,10 @@ class N2SelfReconstructor(Reconstructor):
     
     def _calc_supervised(self, projs, theta):
         self.net.eval()
+        self.filter.eval()
         projs = np_to_torch(projs).type(self.DTYPE)
-        ir = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
         x_iter = self.net(
-            ir(projs)
+            self.ir(projs)
         )
         x_iter_npy = np.clip(torch_to_np(x_iter), 0, 1).astype(np.float64)
         self.image_r = x_iter_npy.copy()
@@ -231,30 +234,25 @@ class N2SelfReconstructor(Reconstructor):
     def init_train(self, theta):
         self.theta = torch.from_numpy(theta).type(self.DTYPE)
         self.n_proj = len(theta)
-        self.net = self._get_net(self.net_type)
-        if self.weights:
-            self._load(self.weights)
-        self.mse = torch.nn.MSELoss().to(self.DEVICE)
-        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
-        self.i_iter = 0
-
-    def calc(self, projs, theta):
-
-        # reinit everything
-        self.theta = torch.from_numpy(theta).type(self.DTYPE)
-        self.n_proj = len(theta)
         self.loss_hist = []
         self.rmse_hist = []
         self.ssim_hist = []
         self.psnr_hist = []
         self.net = self._get_net(self.net_type)
+        self.i_iter = 0
+        self.filter = LearnableFilter(512)
+        self.r = Radon(self.IMAGE_SIZE, theta, True).to(self.DEVICE)
+        self.ir = IRadon(self.IMAGE_SIZE, theta, True, use_filter=self.filter).to(self.DEVICE)
+        self.masker = Masker(width = 4, mode='interpolate')
+        self.mse = torch.nn.MSELoss().to(self.DEVICE)
+        self.optimizer = torch.optim.Adam(list(self.net.parameters())+list(self.filter.parameters()), lr=self.lr)
         if self.weights:
             self._load(self.weights)
-        self.best_result = None
-        # loss functions and optimization
-        self.mse = torch.nn.MSELoss().to(self.DEVICE)
-        self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
-        self.i_iter = 0
+
+    def calc(self, projs, theta):
+        
+        # reinit everything
+        self.init_train(theta)
 
         if self.selfsupervised:
             return self._calc_unsupervised(projs, theta)
@@ -289,37 +287,35 @@ class N2SelfReconstructor(Reconstructor):
     ######### Training #########
     def _save(self, save_name):
         torch.save(self.net.state_dict(), save_name)
+        torch.save(self.filter.state_dict(), save_name+'.filter')
 
     def _load(self, load_name):
         print('weights are loaded...')
         self.net.load_state_dict(torch.load(load_name))
+        self.filter.load_state_dict(torch.load(load_name+'.filter'))
 
     def train(self, train_loader, test_loader, epochs=10):
         pass
 
     def _train_one_epoch(self, train_loader, test_loader):
         full = set(i for i in range(self.n_proj))
-        self.weights = True
         self.net.train()
+        self.filter.train()
+
         for projs in tqdm(train_loader):
             self.i_iter += 1
 
             projs = projs.type(self.DTYPE)
 
-            self.optimizer.zero_grad()
-
-            idx, idxC = toSubLists(full, self.n2self_proj_ratio)
-            tsub = self.theta[idx]
-            tsubC = self.theta[idxC]
-            r = Radon(self.IMAGE_SIZE, tsub, True).to(self.DEVICE)
-            ir = IRadon(self.IMAGE_SIZE, tsubC, True).to(self.DEVICE)
+            self.optimizer.zero_grad()            
+            net_input, mask = self.masker.mask( projs, self.i_iter % (self.masker.n_masks - 1) )
 
             x_iter = self.net(
-                ir(projs[:,:,:,idxC])
+                self.ir(net_input)
             )
             loss = self.mse(
-                r(x_iter),
-                projs[:,:,:,idx]
+                self.r(x_iter)*mask,
+                projs*mask
             )
 
             loss.backward()
@@ -332,15 +328,15 @@ class N2SelfReconstructor(Reconstructor):
 
     def _eval(self, test_loader):
         self.net.eval()
+        self.filter.eval()
         rmse_list = []
         ssim_list = []
         psnr_list = []
         for projs, gts in tqdm(test_loader):
             projs = projs.type(self.DTYPE)
             gts = gts.type(self.DTYPE)
-            ir = IRadon(self.IMAGE_SIZE, self.theta, True).to(self.DEVICE)
             x_iter = self.net(
-                ir(projs)
+                self.ir(projs)
             )
             
             for i in range(projs.shape[0]):

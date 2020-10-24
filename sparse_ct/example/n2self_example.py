@@ -14,14 +14,14 @@ from sparse_ct.reconstructor_2d import (
 if __name__ == "__main__":
 
     #fname = "../data/benchmark_human/shepp_logan.jpg"
-    fname = "../data/benchmark_human/20.png"
+    fname = "../data/benchmark_ellipses/5.png"
 
 
 
-    # gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
-    #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
-    gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
+    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
             n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=35.0 )
+    # gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
+    #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
 
     recon_fbp = IRadonReconstructor('FBP')
     recon_sart = SartReconstructor('SART',
@@ -36,19 +36,19 @@ if __name__ == "__main__":
     recon_n2self_selfsuper = N2SelfReconstructor('N2Self_SelfSupervised',
                 n2self_n_iter=4001, n2self_proj_ratio=0.2,
                 n2self_weights=None, n2self_selfsupervised=True,
-                net='skipV2', lr=0.01, )
+                net='skip', lr=0.01, )
 
     recon_n2self_learned_single = N2SelfReconstructor('N2Self_Learned_SingleShot',
-                n2self_n_iter=4001, n2self_proj_ratio=0.2,
-                n2self_weights='iter_95000.pth',
+                n2self_proj_ratio=0.2,
+                n2self_weights='training-03/iter_100000.pth',
                 n2self_selfsupervised=False,
-                net='skipV2', lr=0.01, )
+                net='skip', lr=0.01, )
 
     recon_n2self_learned_selfsuper = N2SelfReconstructor('N2Self_Learned_SelfSupervised',
                 n2self_n_iter=4001, n2self_proj_ratio=0.2,
-                n2self_weights='iter_95000.pth',
+                n2self_weights='training-03/iter_100000.pth',
                 n2self_selfsupervised=True,
-                net='skipV2', lr=0.01, )
+                net='skip', lr=0.001, )
 
     img_fbp = recon_fbp.calc(sinogram, theta)
     img_sart = recon_sart.calc(sinogram, theta)
@@ -78,8 +78,8 @@ if __name__ == "__main__":
         ))
 
     plot_grid([gt, img_fbp, img_sart, img_sart_tv, img_sart_bm3d, img_n2self_selfsuper, img_n2self_learned_single, img_n2self_learned_selfsuper],
-            FOCUS=None, save_name='all.png', dpi=500)
+            FOCUS=FOCUS, save_name='all.png', dpi=500)
 
     plot_grid([gt, img_fbp, img_sart, img_sart_tv, img_sart_bm3d, img_n2self_learned_selfsuper],
-            FOCUS=None, save_name='all2.png', dpi=500)
+            FOCUS=FOCUS, save_name='all2.png', dpi=500)
             

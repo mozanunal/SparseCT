@@ -11,19 +11,34 @@ import sys
 
 def db2ratio(db):
     """
-    db=20*log(ratio)
-    ratio=10**(db/20)
+    For power:
+    db=10*log(ratio)
+    ratio=10**(db/10)
     """
-    return 10.0**(db/20.0)
+    return 10.0**(db/10.0)
 
 def awgn(x, noise_pow):
-    try:
-        k = db2ratio(noise_pow)
-        return x + np.random.normal(0.0, x.mean()/k, x.shape )
+    """
+    power of noise:
+    sig_pow = mean(X)**2 + std(X)**2
+    noise_pow = std(Noise)**2
+    snr_ratio = sig_pow/noise_pow
+    k = (mean(X)**2 + std(X)**2) / std(Noise)**2
+    std(Noise)**2 = (mean(X)**2 + std(X)**2) / k 
+    """
+    # try:
+    k = db2ratio(noise_pow)
+    var = ( (x.mean()**2) + (x.std()**2) ) /k
+    print("Signal -> mean: ", x.mean(),  " std: ", x.std())
+    print("Noise  -> snr: ", noise_pow, " k: ", k, " std: ", np.sqrt(var) )
+    signal_power = np.log10( x.mean()**2 + x.std()**2)*10
+    noise_pow = np.log10( var )*10
+    print("S - N: ", signal_power, noise_pow ) 
+    return x + np.random.normal(0.0, np.sqrt(var), x.shape )
         
-    except Exception as e:
-        print('awgn error', e, file=sys.stderr)
-        return x
+    # except Exception as e:
+    #     print('awgn error', e, file=sys.stderr)
+    #     return x
  
 
 def pad_to_square(img, size_big=None):

@@ -4,23 +4,33 @@ This repo is a tool to develop sparse view CT reconstruction projects and compar
 
 ### Self-Supervised Training For Low Dose CT Reconstruction
 
-- [Click here to access the paper]()
-- [Click here to reach the tagged version of the software]()
+- [Click here to access the paper](https://arxiv.org/abs/2010.13232)
+- [Click here to reach the tagged version of the software](https://github.com/mozanunal/SparseCT)
 
 ```
-
+@misc{unal2020selfsupervised,
+      title={Self-Supervised Training For Low Dose CT Reconstruction}, 
+      author={Mehmet Ozan Unal and Metin Ertas and Isa Yildirim},
+      year={2020},
+      eprint={2010.13232},
+      archivePrefix={arXiv},
+      primaryClass={eess.IV}
+}
 ```
+
+<!---
+
 
 ### Sparse-View CT Reconstruction Using Deep Generative Regularization Prior
 
 ```
 
 ```
-
+-->
 
 ## Demo
 
-Example resuls from from [this paper]().
+Example resuls from from [this paper](https://arxiv.org/abs/2010.13232).
 
 ![](https://raw.githubusercontent.com/mozanunal/SparseCT/master/docs/images/result2.png)
 
@@ -47,7 +57,7 @@ pip install -r requirements.txt
 
 ## Contributing
 
-Please
+Please implement your constructor according to Reconstructor abstract class. A contribution guide will be added 
 
 ## Acknowledgements
 

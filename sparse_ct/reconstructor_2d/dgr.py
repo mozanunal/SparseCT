@@ -22,6 +22,7 @@ from .base import Reconstructor
 from sparse_ct.loss.tv import tv_2d_l2
 from sparse_ct.loss.perceptual import VGGPerceptualLoss
 from sparse_ct.tool import im2tensor, plot_grid, np_to_torch, torch_to_np
+from sparse_ct.model.dncnn import DnCNN
 from sparse_ct.model.unet import UNet
 from sparse_ct.model.skip import Skip
 
@@ -44,7 +45,7 @@ class DgrReconstructor(Reconstructor):
          w_ssim_loss=0.0, w_tv_loss=0.0, randomize_projs=None):
         super(DgrReconstructor, self).__init__(name)
         self.n_iter = dip_n_iter
-        assert net in ['skip', 'skipV2', 'unet']
+        assert net in ['skip', 'skipV2', 'unet', 'dncnn']
         self.net = net
         self.lr = lr
         self.reg_std = reg_std
@@ -213,9 +214,12 @@ class DgrReconstructor(Reconstructor):
                 num_channels_up=[32, 64, 128, 256, 512]).to(self.DEVICE)
         elif self.net == 'unet':
             return UNet(num_input_channels=self.INPUT_DEPTH, num_output_channels=self.IMAGE_DEPTH,
-                    feature_scale=4, more_layers=0, concat_x=False,
-                    upsample_mode='bilinear', norm_layer=torch.nn.BatchNorm2d,
-                    pad='reflect',
-                    need_sigmoid=False, need_bias=True).to(self.DEVICE)
+                feature_scale=4, more_layers=0, concat_x=False,
+                upsample_mode='bilinear', norm_layer=torch.nn.BatchNorm2d,
+                pad='reflect',
+                need_sigmoid=False, need_bias=True).to(self.DEVICE)
+        elif self.net == 'dncnn':
+            return DnCNN(in_channels=self.INPUT_DEPTH, 
+                out_channels=self.IMAGE_DEPTH).to(self.DEVICE)
         else:
             assert False

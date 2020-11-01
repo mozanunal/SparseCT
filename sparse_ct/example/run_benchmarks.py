@@ -3,7 +3,7 @@ import logging
 import numpy as np
 
 from sparse_ct.tool import plot_grid
-from sparse_ct.data import sparse_image, image_to_sparse_sinogram
+from sparse_ct.data import image_to_sparse_sinogram
 from sparse_ct.data.benchmark import benchmark
 from sparse_ct.reconstructor_2d import (
     IRadonReconstructor,

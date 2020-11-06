@@ -5,6 +5,7 @@ import glob
 import numpy as np
 
 from sparse_ct.reconstructor_2d import (
+                                SartReconstructor,
                                 SartBM3DReconstructor,
                                 DgrReconstructor,
                                 N2SelfReconstructor)
@@ -51,9 +52,8 @@ def benchmark(
                         angle1=0.0, angle2=180.0, noise_pow=noise_pow)
         # set metrics
         if type(recon) == DgrReconstructor or type(recon) == N2SelfReconstructor:
-            recon_bm3d = SartBM3DReconstructor('SART+BM3D', 
-                            sart_n_iter=40, sart_relaxation=0.15,
-                            bm3d_sigma=0.5)
+            recon_bm3d = SartReconstructor('SART', 
+                            sart_n_iter=40, sart_relaxation=0.15)
             img_sart_bm3d = recon_bm3d.calc(sinogram, theta)
             recon.set_for_metric(gt, img_sart_bm3d, FOCUS=FOCUS, log_dir='../log/dip')
 

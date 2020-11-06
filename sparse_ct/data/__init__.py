@@ -17,7 +17,10 @@ def db2ratio(db):
     """
     return 10.0**(db/10.0)
 
-def awgn(x, noise_pow):
+def calc_power(x):
+    return np.mean(x**2)# (x.mean()**2) + (x.std()**2)
+
+def awgn(x, desired_noise_pow):
     """
     power of noise:
     sig_pow = mean(X)**2 + std(X)**2
@@ -26,15 +29,18 @@ def awgn(x, noise_pow):
     k = (mean(X)**2 + std(X)**2) / std(Noise)**2
     std(Noise)**2 = (mean(X)**2 + std(X)**2) / k 
     """
-    # try:
-    k = db2ratio(noise_pow)
-    var = ( (x.mean()**2) + (x.std()**2) ) /k
+    # generate noise
+    k = db2ratio(desired_noise_pow)
+    noise_var = calc_power(x) / k
+    noise = np.random.normal(0.0, np.sqrt(noise_var), x.shape )
+
+    # stats
+    signal_power = np.log10( calc_power(x) )*10
+    noise_power = np.log10( calc_power(noise) )*10
     print("Signal -> mean: ", x.mean(),  " std: ", x.std())
-    print("Noise  -> snr: ", noise_pow, " k: ", k, " std: ", np.sqrt(var) )
-    signal_power = np.log10( x.mean()**2 + x.std()**2)*10
-    noise_pow = np.log10( var )*10
-    print("S - N: ", signal_power, noise_pow ) 
-    return x + np.random.normal(0.0, np.sqrt(var), x.shape )
+    print("Noise  -> mean: ", noise.mean(), " std: ", noise.std() )
+    print("S - N: ", signal_power, noise_power, " snr: ", desired_noise_pow, " k: ", k,  ) 
+    return x + noise
 
 def poisson_noise(x, noise_pow):
     pass

@@ -101,7 +101,7 @@ class DgrReconstructor(Reconstructor):
             tv_l = self.w_tv_loss * tv_2d_l2(x_iter[0,0])
         if self.w_ssim_loss > 0.0:
             ssim_l = self.w_ssim_loss * (1 - self.ssim(x_iter, x_initial.detach() ))
-        return proj_l +  percep_l +  tv_l + ssim_l
+        return proj_l +  percep_l +  tv_l + ssim_l, (proj_l, percep_l, tv_l, ssim_l)
 
 
     def calc(self, projs, theta):
@@ -152,7 +152,7 @@ class DgrReconstructor(Reconstructor):
                 net_input = net_input_saved + (noise.normal_() * self.reg_std)
 
             x_iter = net(net_input)
-            loss = self._calc_loss(x_iter, projs, x_initial)
+            loss, (proj_l, percep_l, tv_l, ssim_l) = self._calc_loss(x_iter, projs, x_initial)
             
             loss.backward()
             
@@ -177,6 +177,7 @@ class DgrReconstructor(Reconstructor):
                 print('{}/{}- psnr: {:.3f} - psnr_noisy: {:.3f} - ssim: {:.3f} - rmse: {:.5f} - loss: {:.5f} '.format(
                     self.name, i, psnr_hist[-1], psnr_noisy_hist[-1], ssim_hist[-1], rmse_hist[-1], loss_hist[-1]
                 ))
+                #print( proj_l.item(), ssim_l.item())
 
                 # if psnr_noisy_hist[-1] / max(psnr_noisy_hist) < 0.92:
                 #     print('Falling back to previous checkpoint.')

@@ -39,14 +39,15 @@ recon_sart_bm3d = SartBM3DReconstructor('SART+BM3Ds0.35',
                         sart_n_iter=40, sart_relaxation=0.15,
                         bm3d_sigma=0.35)
 
-recon_dgr = DgrReconstructor('DGR_1.00_0.00_0.00_PCONV', 
+recon_dgr = DgrReconstructor('DGR_0.80_0.00_0.10_0.10', 
                         dip_n_iter=4001, 
                         net='skip',
                         lr=0.01,
                         reg_std=1./100,
-                        w_proj_loss=1.00,
-                        w_perceptual_loss=0.0,
-                        w_tv_loss=0.00)
+                        w_proj_loss=0.80,
+                        w_perceptual_loss=0.00,
+                        w_tv_loss=0.10,
+                        w_ssim_loss=0.10)
 recon_rdgr = DgrReconstructor('RDGR_1.00_0.00_0.00', 
                         dip_n_iter=4001, 
                         net='skip',
@@ -58,8 +59,9 @@ recon_rdgr = DgrReconstructor('RDGR_1.00_0.00_0.00',
                         randomize_projs=0.1)
 
 recon_n2s_selfsuper = N2SelfReconstructor('N2S_SelfSup_02',
-                        n2self_n_iter=4001, n2self_proj_ratio=0.2,
-                        n2self_weights=None, n2self_selfsupervised=True,
+                        n2self_n_iter=4001,
+                        n2self_weights=None, 
+                        n2self_selfsupervised=True,
                         net='skip', lr=0.01, )
 
 recon_n2s_singleshot = N2SelfReconstructor('N2S_SingleS_02_05',

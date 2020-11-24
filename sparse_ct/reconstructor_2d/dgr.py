@@ -48,6 +48,7 @@ class DgrReconstructor(Reconstructor):
         self.n_iter = dip_n_iter
         assert net in ['skip', 'skipV2', 'skipV3', 'unet', 'dncnn']
         self.net = net
+        self.channels = channels
         self.lr = lr
         self.reg_std = reg_std
         # loss weights
@@ -207,6 +208,13 @@ class DgrReconstructor(Reconstructor):
     def _get_net(self):
         # Init Net
         if self.net == 'skip':
+            return Skip(num_input_channels=self.INPUT_DEPTH,
+                num_output_channels=self.IMAGE_DEPTH,
+                upsample_mode='nearest',
+                num_channels_down=self.channels, 
+                num_channels_up=self.channels,
+                num_channels_skip=[4 for i in self.channels]).to(self.DEVICE)
+        if self.net == 'skipV1':
             return Skip(num_input_channels=self.INPUT_DEPTH,
                 num_output_channels=self.IMAGE_DEPTH,
                 upsample_mode='nearest',

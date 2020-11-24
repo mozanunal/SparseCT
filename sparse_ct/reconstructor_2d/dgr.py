@@ -42,10 +42,11 @@ class DgrReconstructor(Reconstructor):
         dip_n_iter=8000, net='skip',
         lr=0.001, reg_std=1./100,
          w_proj_loss=1.0, w_perceptual_loss=0.0, 
-         w_ssim_loss=0.0, w_tv_loss=0.0, randomize_projs=None):
+         w_ssim_loss=0.0, w_tv_loss=0.0, randomize_projs=None,
+         channels=[16, 32, 64, 128, 256]):
         super(DgrReconstructor, self).__init__(name)
         self.n_iter = dip_n_iter
-        assert net in ['skip', 'skipV2', 'unet', 'dncnn']
+        assert net in ['skip', 'skipV2', 'skipV3', 'unet', 'dncnn']
         self.net = net
         self.lr = lr
         self.reg_std = reg_std
@@ -137,6 +138,7 @@ class DgrReconstructor(Reconstructor):
         loss_hist = []
         rmse_hist = []
         ssim_hist = []
+        ssim_noisy_hist = []
         psnr_hist = []
         psnr_noisy_hist = []
         best_network = None
@@ -167,6 +169,9 @@ class DgrReconstructor(Reconstructor):
                 ssim_hist.append(
                     structural_similarity(x_iter_npy, self.gt, multichannel=False)
                 )
+                ssim_noisy_hist.append(
+                    structural_similarity(x_iter_npy, self.noisy, multichannel=False)
+                )
                 psnr_hist.append(
                     peak_signal_noise_ratio(x_iter_npy, self.gt)
                 )
@@ -174,8 +179,8 @@ class DgrReconstructor(Reconstructor):
                     peak_signal_noise_ratio(x_iter_npy, self.noisy)
                 )
                 loss_hist.append(loss.item())
-                print('{}/{}- psnr: {:.3f} - psnr_noisy: {:.3f} - ssim: {:.3f} - rmse: {:.5f} - loss: {:.5f} '.format(
-                    self.name, i, psnr_hist[-1], psnr_noisy_hist[-1], ssim_hist[-1], rmse_hist[-1], loss_hist[-1]
+                print('{}/{}- psnr: {:.3f} - psnr_noisy: {:.3f} - ssim: {:.3f} - ssim_noisy: {:.3f} - rmse: {:.5f} - loss: {:.5f} '.format(
+                    self.name, i, psnr_hist[-1], psnr_noisy_hist[-1], ssim_hist[-1], ssim_noisy_hist[-1], rmse_hist[-1], loss_hist[-1]
                 ))
                 #print( proj_l.item(), ssim_l.item())
 
@@ -194,7 +199,7 @@ class DgrReconstructor(Reconstructor):
                         # save network
                         best_network = [x.detach().cpu() for x in net.parameters()]
                         best_result = x_iter_npy.copy() 
-                plot_grid([self.gt, self.noisy, x_iter_npy], self.FOCUS, save_name=self.log_dir+'/{}.png'.format(i))
+                plot_grid([x_iter_npy], self.FOCUS, save_name=self.log_dir+'/{}.png'.format(i))
 
         self.image_r = best_result
         return self.image_r
@@ -213,6 +218,12 @@ class DgrReconstructor(Reconstructor):
                 upsample_mode='nearest',
                 num_channels_down=[32, 64, 128, 256, 512], 
                 num_channels_up=[32, 64, 128, 256, 512]).to(self.DEVICE)
+        elif self.net == 'skipV3':
+            return Skip(num_input_channels=self.INPUT_DEPTH,
+                num_output_channels=self.IMAGE_DEPTH,
+                upsample_mode='nearest',
+                num_channels_down=[64, 128, 256, 512, 1024], 
+                num_channels_up=[64, 128, 256, 512, 1024]).to(self.DEVICE)
         elif self.net == 'unet':
             return UNet(num_input_channels=self.INPUT_DEPTH, num_output_channels=self.IMAGE_DEPTH,
                 feature_scale=4, more_layers=0, concat_x=False,

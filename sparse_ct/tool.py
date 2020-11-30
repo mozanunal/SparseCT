@@ -56,7 +56,7 @@ def plot_result(gt, noisy, result, FOCUS=None, show=False, save_name=None):
         plt.savefig(save_name)
     plt.close()
 
-def plot_grid(imgs, FOCUS=None, show=False, save_name=None, dpi=300):
+def plot_grid(imgs, FOCUS=None, show=False, save_name=None, focus_save_name=None, dpi=300):
     # fig, ax = plt.subplots(1, 1)
     updated_imgs = []
     if FOCUS:
@@ -93,3 +93,5 @@ def plot_grid(imgs, FOCUS=None, show=False, save_name=None, dpi=300):
         imshow(ims)
     if save_name:
         imsave(save_name, ims)
+    # if focus_save_name:
+    #     imsave(focus_save_name, [fo])

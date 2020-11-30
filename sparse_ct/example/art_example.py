@@ -2,7 +2,7 @@
 from skimage.color import gray2rgb
 
 from sparse_ct.tool import plot_grid
-from sparse_ct.data import sparse_image, image_to_sparse_sinogram
+from sparse_ct.data import image_to_sparse_sinogram
 from sparse_ct.reconstructor_2d import (
                         IRadonReconstructor,
                         SartReconstructor,
@@ -12,10 +12,10 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
-    fname = "../data/ct1.jpg"
+    fname = "../data/benchmark_human/20.png"
 
 
-    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1, n_proj=32, size=512 )
+    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1, n_proj=32, size=512, noise_pow=40.0 )
 
     n_iter = 40
     recon_fbp = IRadonReconstructor('FBP')
@@ -52,4 +52,4 @@ if __name__ == "__main__":
             r.name, mse, psnr, ssim
         ))
 
-    plot_grid( [gt]+imgs, FOCUS=FOCUS, show=True)
+    plot_grid( [gt]+imgs, FOCUS=FOCUS, save_name='art.png', dpi=500 )

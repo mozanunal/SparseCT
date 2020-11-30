@@ -17,7 +17,10 @@ def db2ratio(db):
     """
     return 10.0**(db/10.0)
 
-def awgn(x, noise_pow):
+def calc_power(x):
+    return np.mean(x**2)# (x.mean()**2) + (x.std()**2)
+
+def awgn(x, desired_noise_pow):
     """
     power of noise:
     sig_pow = mean(X)**2 + std(X)**2
@@ -26,20 +29,21 @@ def awgn(x, noise_pow):
     k = (mean(X)**2 + std(X)**2) / std(Noise)**2
     std(Noise)**2 = (mean(X)**2 + std(X)**2) / k 
     """
-    # try:
-    k = db2ratio(noise_pow)
-    var = ( (x.mean()**2) + (x.std()**2) ) /k
+    # generate noise
+    k = db2ratio(desired_noise_pow)
+    noise_var = calc_power(x) / k
+    noise = np.random.normal(0.0, np.sqrt(noise_var), x.shape )
+
+    # stats
+    signal_power = np.log10( calc_power(x) )*10
+    noise_power = np.log10( calc_power(noise) )*10
     print("Signal -> mean: ", x.mean(),  " std: ", x.std())
-    print("Noise  -> snr: ", noise_pow, " k: ", k, " std: ", np.sqrt(var) )
-    signal_power = np.log10( x.mean()**2 + x.std()**2)*10
-    noise_pow = np.log10( var )*10
-    print("S - N: ", signal_power, noise_pow ) 
-    return x + np.random.normal(0.0, np.sqrt(var), x.shape )
-        
-    # except Exception as e:
-    #     print('awgn error', e, file=sys.stderr)
-    #     return x
- 
+    print("Noise  -> mean: ", noise.mean(), " std: ", noise.std() )
+    print("S - N: ", signal_power, noise_power, " snr: ", desired_noise_pow, " k: ", k,  ) 
+    return x + noise
+
+def poisson_noise(x, noise_pow):
+    pass
 
 def pad_to_square(img, size_big=None):
     if size_big == None:
@@ -104,86 +108,6 @@ def noisy_shepp_logan(
     return gt, noisy, FOCUS
 
 
-def sparse_shepp_logan(
-    noise_level=0.35,
-    gray=True,
-    n_proj=32,
-    angle1=0.0,
-    angle2=180.0,
-    channel=1,
-    size=512
-):
-    gt = resize(shepp_logan_phantom(), (size, size))
-    theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
-    sinogram = radon(gt, theta=theta, circle=True)
-    noisy = iradon(sinogram, theta=theta)
-
-    def FOCUS(x):
-        return x[350:450, 200:300]
-
-    if channel == 3:
-        noisy = gray2rgb(noisy)
-        gt = gray2rgb(gt)
-
-    return gt, noisy, FOCUS
-
-
-def sparse_breast_phantom(
-    noise_level=0.35,
-    gray=True,
-    n_proj=64,
-    angle1=0.0,
-    angle2=180.0,
-    channel=1,
-):
-    gt = loadmat('data/bp-160u-dense.mat')['data'][300]
-    gt = resize(gt, (316, 316)).astype('float')
-    theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
-    sinogram = radon(gt, theta=theta, circle=True)
-    noisy = iradon(sinogram, theta=theta)
-    noisy = resize(noisy, (316, 316)).astype('float')
-    print(noisy.shape, gt.shape)
-
-    def FOCUS(x):
-        return x[175:275, 75:175]
-
-    return gt, noisy, FOCUS
-
-
-def sparse_image(
-    image_path,
-    noise_level=0.25,
-    gray=True,
-    n_proj=128,
-    angle1=0.0,
-    angle2=180.0,
-    channel=1,
-    size=512
-):
-    raw_img = io.imread(image_path, as_gray=gray).astype('float64')
-    if raw_img.max() > 300: # for low dose ct dataset
-        raw_img = raw_img - 31744.0# 32168 1800
-        raw_img = raw_img / 4096.0
-    else:
-        raw_img = raw_img / raw_img.max()
-    gt = resize(pad_to_square(raw_img), (size, size))
-    theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
-    sinogram = radon(gt, theta=theta, circle=True)
-    noisy = None#iradon(sinogram, theta=theta)
-    for _ in range(40):
-        noisy = iradon_sart(sinogram, theta=theta, image=noisy, relaxation=0.03)
-
-    def FOCUS(x):
-        return x[250:350, 250:350]
-
-    if channel == 3:
-        noisy = gray2rgb(noisy)
-        gt = gray2rgb(gt)
-
-    return gt, noisy, FOCUS
-
-
-
 
 elipData = EllipsesDataset(
         image_size = 512,
@@ -200,7 +124,8 @@ def ellipses_to_sparse_sinogram(
     angle2=180.0,
     channel=1,
     size=512,
-    noise_pow=25.0
+    noise_pow=25.0,
+    noise_type='gaussian'
 ):
     mask = create_circular_mask(size,size)
     gt = np.array(next(elipData.generator(part=part))).astype('float64')
@@ -225,7 +150,8 @@ def image_to_sparse_sinogram(
     angle2=180.0,
     channel=1,
     size=512,
-    noise_pow=25.0
+    noise_pow=25.0,
+    noise_type='gaussian'
 ):
     mask = create_circular_mask(size,size)
     raw_img = io.imread(image_path, as_gray=gray).astype('float64')
@@ -252,11 +178,4 @@ def image_to_sparse_sinogram(
 
 
 if __name__ == "__main__":
-    gt, n, _ = sparse_image("data/pomegranate.jpg")
-    #gt,n,_ = sparse_shepp_logan("data/zebra.jpg")
-    import matplotlib.pyplot as plt
-
-    plt.imshow(gt, cmap='gray')
-    plt.show()
-    plt.imshow(n, cmap='gray')
-    plt.show()
+    pass

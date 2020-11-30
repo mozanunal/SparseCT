@@ -131,6 +131,7 @@ dmypy.json
 
 .vscode/*
 */log*
+papers/*/log/*
 *log.txt
 *.npy
 

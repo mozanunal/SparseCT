@@ -3,7 +3,7 @@ import logging
 import numpy as np
 
 from sparse_ct.tool import plot_grid
-from sparse_ct.data import sparse_image, image_to_sparse_sinogram
+from sparse_ct.data import image_to_sparse_sinogram
 from sparse_ct.data.benchmark import benchmark
 from sparse_ct.reconstructor_2d import (
     IRadonReconstructor,
@@ -21,7 +21,7 @@ def benchmark_all(recon, data_list, theta_list):
                 data,
                 recon,
                 theta,
-                25.0
+                40.0
             )
 
 
@@ -39,16 +39,17 @@ recon_sart_bm3d = SartBM3DReconstructor('SART+BM3Ds0.35',
                         sart_n_iter=40, sart_relaxation=0.15,
                         bm3d_sigma=0.35)
 
-recon_dgr = DgrReconstructor('DGR_1.00_0.00_0.00', 
-                        dip_n_iter=8000, 
+recon_dgr = DgrReconstructor('DGR_0.80_0.00_0.10_0.10', 
+                        dip_n_iter=4001, 
                         net='skip',
                         lr=0.01,
                         reg_std=1./100,
-                        w_proj_loss=1.0,
-                        w_perceptual_loss=0.0,
-                        w_tv_loss=0.0)
+                        w_proj_loss=0.80,
+                        w_perceptual_loss=0.00,
+                        w_tv_loss=0.10,
+                        w_ssim_loss=0.10)
 recon_rdgr = DgrReconstructor('RDGR_1.00_0.00_0.00', 
-                        dip_n_iter=8000, 
+                        dip_n_iter=4001, 
                         net='skip',
                         lr=0.01,
                         reg_std=1./100,
@@ -58,9 +59,10 @@ recon_rdgr = DgrReconstructor('RDGR_1.00_0.00_0.00',
                         randomize_projs=0.1)
 
 recon_n2s_selfsuper = N2SelfReconstructor('N2S_SelfSup_02',
-                        n2self_n_iter=4001, n2self_proj_ratio=0.2,
-                        n2self_weights=None, n2self_selfsupervised=True,
-                        net='skipV2', lr=0.01, )
+                        n2self_n_iter=4001,
+                        n2self_weights=None, 
+                        n2self_selfsupervised=True,
+                        net='skip', lr=0.01, )
 
 recon_n2s_singleshot = N2SelfReconstructor('N2S_SingleS_02_05',
                         n2self_n_iter=4001, n2self_proj_ratio=0.2,
@@ -85,11 +87,11 @@ if __name__ == "__main__":
     theta_list = [
                 np.linspace(0.0, 180.0, 32, endpoint=False),
                 np.linspace(0.0, 180.0, 64, endpoint=False),
-                # np.linspace(0.0, 180.0, 128, endpoint=False),
+                np.linspace(0.0, 180.0, 100, endpoint=False),
                 ]
 
     benchmark_all(
-        recon_learned_selfsuper,
+        recon_dgr,
         data_list,
         theta_list
     )

@@ -2,10 +2,12 @@
 
 This repo is a tool to develop sparse view CT reconstruction projects and compare different methods easily. The following papers are developed using this code repository.
 
+
+
 ### Self-Supervised Training For Low Dose CT Reconstruction
 
 - [Click here to access the paper](https://arxiv.org/abs/2010.13232)
-- [Click here to reach the tagged version of the software](https://github.com/mozanunal/SparseCT)
+- [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/master/papers/dgr)
 
 ```
 @misc{unal2020selfsupervised,
@@ -18,15 +20,21 @@ This repo is a tool to develop sparse view CT reconstruction projects and compar
 }
 ```
 
-<!---
+### Low-Dose CT Reconstruction Using Deep Generative Regularization Prior
 
-
-### Sparse-View CT Reconstruction Using Deep Generative Regularization Prior
-
-```
+- [Click here to access the paper](https://arxiv.org/abs/2012.06448)
+- [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/master/papers/dgr)
 
 ```
--->
+@misc{unal2020lowdose,
+      title={Low-Dose CT Reconstruction Using Deep Generative Regularization Prior}, 
+      author={Mehmet Ozan Unal and Metin Ertas and Isa Yildirim},
+      year={2020},
+      eprint={2012.06448},
+      archivePrefix={arXiv},
+      primaryClass={eess.IV}
+}
+```
 
 ## Demo
 

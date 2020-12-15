@@ -7,7 +7,7 @@ This repo is a tool to develop sparse view CT reconstruction projects and compar
 ### Self-Supervised Training For Low Dose CT Reconstruction
 
 - [Click here to access the paper](https://arxiv.org/abs/2010.13232)
-- [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/master/papers/dgr)
+- [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/master/papers/self_super_ct_reconstuction)
 
 ```
 @misc{unal2020selfsupervised,

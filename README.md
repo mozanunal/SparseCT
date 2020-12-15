@@ -2,7 +2,7 @@
 
 This repo is a tool to develop sparse view CT reconstruction projects and compare different methods easily. The following papers are developed using this code repository.
 
-
+## Papers
 
 ### Self-Supervised Training For Low Dose CT Reconstruction
 

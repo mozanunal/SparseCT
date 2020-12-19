@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from skimage.io import imsave
 from skimage.transform import radon, iradon
+from sparse_ct.tool import plot_grid
 from sparse_ct.data import image_to_sparse_sinogram, ellipses_to_sparse_sinogram
 from sparse_ct.reconstructor_2d import IRadonReconstructor
 
@@ -26,17 +27,26 @@ gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram('train', channel=1,
 # gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
 #         n_proj=128, size=512, angle1=0.0, angle2=180.0, noise_pow=12.0 )
 
-plt.figure()
-plt.imshow(sinogram, cmap='gray')#, vmin=0.0, vmax=1.0)
-plt.figure()
-plt.imshow(gt, cmap='gray', vmin=0.0, vmax=1.0)
-plt.figure()
-plt.imshow(iradon(sinogram, theta=theta), cmap='gray')
-plt.show()
+# plt.figure()
+# plt.imshow(sinogram, cmap='gray')#, vmin=0.0, vmax=1.0)
+# plt.figure()
+# plt.imshow(gt, cmap='gray', vmin=0.0, vmax=1.0)
+# plt.figure()
+# plt.imshow(iradon(sinogram, theta=theta), cmap='gray')
+# plt.show()
 
 recon_fbp = IRadonReconstructor('FBP')
-recon_fbp.calc(sinogram, theta)
-print(recon_fbp.eval(gt))
+fbp_img = recon_fbp.calc(sinogram, theta)
 
-#     imsave('img/{}.png'.format(i), gt )
+imgs = [gt, fbp_img, gt, fbp_img, gt, fbp_img,]
+
+# plot_grid(
+#         imgs, FOCUS=None, show=True, number_of_rows=3
+# )
+# plot_grid(
+#         imgs, FOCUS=FOCUS, show=True, number_of_rows=3
+# )
+plot_grid(
+        imgs, ZOOM=FOCUS, show=True, number_of_rows=1, plot1d=50
+)
 

@@ -20,14 +20,14 @@ This repo is a tool to develop sparse view CT reconstruction projects and compar
 }
 ```
 
-### Low-Dose CT Reconstruction Using Deep Generative Regularization Prior
+### An Unsupervised Reconstruction Method For Low-Dose CT Using Deep Generative Regularization Prior
 
 - [Click here to access the paper](https://arxiv.org/abs/2012.06448)
 - [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/master/papers/dgr)
 
 ```
-@misc{unal2020lowdose,
-      title={Low-Dose CT Reconstruction Using Deep Generative Regularization Prior}, 
+@misc{unal2020unsupervised,
+      title={An Unsupervised Reconstruction Method For Low-Dose CT Using Deep Generative Regularization Prior}, 
       author={Mehmet Ozan Unal and Metin Ertas and Isa Yildirim},
       year={2020},
       eprint={2012.06448},

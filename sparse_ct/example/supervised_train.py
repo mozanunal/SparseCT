@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     params= {'batch_size': 8,
             'shuffle': True,
-            'num_workers': 8}
+            'num_workers': 5}
 
     # pwd_train = '/external/CT_30_000/train'
     # pwd_test = '/external/CT_30_000/test'
@@ -27,7 +27,6 @@ if __name__ == "__main__":
     #         file_list_train, 
     #         return_gt=True,
     #         n_proj=64,
-    #         noise_pow=25.0,
     #         img_size=512),
     #     **params
     # )
@@ -37,7 +36,6 @@ if __name__ == "__main__":
     #         random.choices(file_list_test, k=250), 
     #         return_gt=True,
     #         n_proj=64,
-    #         noise_pow=25.0,
     #         img_size=512),
     #     **params
     # )
@@ -47,7 +45,6 @@ if __name__ == "__main__":
             ellipses_type='train', 
             return_gt=True,
             n_proj=64,
-            noise_pow=40.0,
             img_size=512),
         **params
     )
@@ -57,7 +54,6 @@ if __name__ == "__main__":
             ellipses_type='validation',
             return_gt=True,
             n_proj=64,
-            noise_pow=40.0,
             img_size=512),
         **params
     )

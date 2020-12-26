@@ -30,8 +30,8 @@ class SupervisedReconstructor(Reconstructor):
     INPUT_DEPTH = 1
     IMAGE_DEPTH = 1
     IMAGE_SIZE = 512
-    SHOW_EVERY = 5
-    SAVE_EVERY = 60
+    SHOW_EVERY = 50
+    SAVE_EVERY = 600
 
     def __init__(self, name,
         net='skip', lr=0.001,

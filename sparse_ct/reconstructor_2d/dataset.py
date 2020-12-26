@@ -4,12 +4,13 @@ from sparse_ct.data import (image_to_sparse_sinogram,
                         ellipses_to_sparse_sinogram)
 import numpy as np
 import torch
+import random
 
 class DeepLesionDataset(torch.utils.data.Dataset):
     def __init__(self, file_list, 
                 return_gt=False,
                 n_proj=32,
-                noise_pow=25.0,
+                noise_pow=np.linspace(30.0, 40.0, 100),
                 img_size=512):
         self.file_list = file_list
         self.return_gt = return_gt
@@ -28,7 +29,9 @@ class DeepLesionDataset(torch.utils.data.Dataset):
             n_proj=self.n_proj,
             channel=1,
             size=self.size,
-            noise_pow=self.noise_pow
+            noise_pow=random.choice(
+                self.noise_pow
+                )
             )
         # get projs
         if self.return_gt:
@@ -40,7 +43,7 @@ class EllipsesDataset(torch.utils.data.Dataset):
     def __init__(self, ellipses_type, 
                 return_gt=False,
                 n_proj=32,
-                noise_pow=25.0,
+                noise_pow=np.linspace(30.0, 40.0, 100),
                 img_size=512):
         self.ellipses_type = ellipses_type
         self.return_gt = return_gt
@@ -62,7 +65,9 @@ class EllipsesDataset(torch.utils.data.Dataset):
             n_proj=self.n_proj,
             channel=1,
             size=self.size,
-            noise_pow=self.noise_pow
+            noise_pow=random.choice(
+                self.noise_pow
+                )
             )
         # get projs
         if self.return_gt:

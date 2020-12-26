@@ -56,9 +56,36 @@ def plot_result(gt, noisy, result, FOCUS=None, show=False, save_name=None):
         plt.savefig(save_name)
     plt.close()
 
-def plot_grid(imgs, FOCUS=None, show=False, save_name=None, focus_save_name=None, dpi=300):
-    # fig, ax = plt.subplots(1, 1)
+def plot_grid(
+        imgs,
+        FOCUS=None,
+        ZOOM=None,
+        number_of_rows=1,
+        margin=None,
+        show=False,
+        save_name=None,
+        plot1d=None,
+        dpi=300):
+    """Grid plotter function for
+
+    Args:
+        imgs ([type]): Array of Numpy ndarrays dim should be 2D
+        FOCUS (func, optional): Focus function creates
+            a rectangle and show zooomed version there. Defaults to None.
+        ZOOM (func, optional): Zoom function creates a rectange and 
+            crop the images to that area. Defaults to None.
+        number_of_rows (int, optional): Number of row for images, 
+            columns will be calculated automatically. Defaults to 1.
+        margin (int, optional): number of pixel for the margin. Defaults to None.
+        show (bool, optional): show the image grid or not. Defaults to False.
+        save_name (str, optional): grid save img directory 
+            if not defined images will not be saved . Defaults to None.
+        plot1d (int, optional): 1d plot position, Defauls None.
+        dpi (int, optional): DPI of save image. Defaults to 300.
+    """
     updated_imgs = []
+
+    ### FOCUS and Zoom
     if FOCUS:
         for img in imgs:
             # find focus
@@ -83,14 +110,40 @@ def plot_grid(imgs, FOCUS=None, show=False, save_name=None, focus_save_name=None
             uimg[rr, cc] = 1
             # append img
             updated_imgs.append(uimg)
+    elif ZOOM:
+        for img in imgs:
+            focused_img, coor = ZOOM(img)
+            # find focus
+            updated_imgs.append(focused_img)
     else:
         updated_imgs = imgs
 
+    # GRID SHAPE
+    number_of_columns = len(imgs) // number_of_rows
+    updated_imgs = np.vstack(
+        [np.hstack(updated_imgs[i:i+number_of_columns]) for i in range(0,len(imgs), number_of_columns)  ]
+    )
 
-    ims = np.clip(np.hstack(updated_imgs), 0, 1) * 255
+    # 1D plot
+    if plot1d:
+        h, w = updated_imgs.shape
+        plt.figure(figsize=(5,1))
+        plt.plot(updated_imgs[plot1d,:])
+        plt.show()
+        th_h = h//20
+        th_w = (w//number_of_columns) // 20
+        for th in range(-th_h//2, th_h//2):
+            updated_imgs[plot1d+th,[i for i in range(0, w, th_w)]] = 1
+            updated_imgs[plot1d+th,[i+1 for i in range(0, w, th_w)]] = 1
+        # updated_imgs[plot1d+2,:] = 1
+
+    # Save and Show
+    ims = np.clip(updated_imgs, 0, 1) * 255
     ims = ims.astype(np.uint8)
     if show:
+        plt.figure()
         imshow(ims)
+        plt.show()
     if save_name:
         imsave(save_name, ims)
     # if focus_save_name:

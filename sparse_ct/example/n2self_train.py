@@ -5,14 +5,15 @@ from tqdm import tqdm
 import glob
 import numpy as np
 import torch
-from sparse_ct.reconstructor_2d.n2self import Dataset, EllipsesDataset, N2SelfReconstructor
+from sparse_ct.reconstructor_2d.dataset import (
+                DeepLesionDataset, EllipsesDataset)
 
 
 if __name__ == "__main__":
 
     params= {'batch_size': 8,
             'shuffle': True,
-            'num_workers': 5}
+            'num_workers': 8}
 
     # pwd_train = '/external/CT_30_000/train'
     # pwd_test = '/external/CT_30_000/test'
@@ -21,7 +22,7 @@ if __name__ == "__main__":
     # file_list_test = glob.glob(pwd_test+'/*/*/*.png')
 
     # train_loader = torch.utils.data.DataLoader(
-    #     Dataset(
+    #     DeepLesionDataset(
     #         file_list_train, 
     #         return_gt=False,
     #         n_proj=64,
@@ -31,7 +32,7 @@ if __name__ == "__main__":
     # )
 
     # test_loader = torch.utils.data.DataLoader(
-    #     Dataset(
+    #     DeepLesionDataset(
     #         random.choices(file_list_test, k=250), 
     #         return_gt=True,
     #         n_proj=64,

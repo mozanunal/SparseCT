@@ -37,9 +37,9 @@ def awgn(x, desired_noise_pow):
     # stats
     signal_power = np.log10( calc_power(x) )*10
     noise_power = np.log10( calc_power(noise) )*10
-    print("Signal -> mean: ", x.mean(),  " std: ", x.std())
-    print("Noise  -> mean: ", noise.mean(), " std: ", noise.std() )
-    print("S - N: ", signal_power, noise_power, " snr: ", desired_noise_pow, " k: ", k,  ) 
+    # print("Signal -> mean: ", x.mean(),  " std: ", x.std())
+    # print("Noise  -> mean: ", noise.mean(), " std: ", noise.std() )
+    # print("S - N: ", signal_power, noise_power, " snr: ", desired_noise_pow, " k: ", k,  ) 
     return x + noise
 
 def poisson_noise(x, noise_pow):

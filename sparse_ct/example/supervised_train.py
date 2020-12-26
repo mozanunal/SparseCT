@@ -5,10 +5,9 @@ from tqdm import tqdm
 import glob
 import numpy as np
 import torch
-from sparse_ct.reconstructor_2d.n2self import (
-        DeepLesionDataset, 
-        EllipsesDataset, 
-        N2SelfReconstructor)
+from sparse_ct.reconstructor_2d.dataset import (
+                DeepLesionDataset, EllipsesDataset )
+from sparse_ct.reconstructor_2d.supervised import SupervisedReconstructor            
 
 
 if __name__ == "__main__":
@@ -26,7 +25,7 @@ if __name__ == "__main__":
     # train_loader = torch.utils.data.DataLoader(
     #     DeepLesionDataset(
     #         file_list_train, 
-    #         return_gt=False,
+    #         return_gt=True,
     #         n_proj=64,
     #         noise_pow=25.0,
     #         img_size=512),
@@ -46,9 +45,9 @@ if __name__ == "__main__":
     train_loader = torch.utils.data.DataLoader(
         EllipsesDataset(
             ellipses_type='train', 
-            return_gt=False,
+            return_gt=True,
             n_proj=64,
-            noise_pow=25.0,
+            noise_pow=40.0,
             img_size=512),
         **params
     )
@@ -58,28 +57,25 @@ if __name__ == "__main__":
             ellipses_type='validation',
             return_gt=True,
             n_proj=64,
-            noise_pow=25.0,
+            noise_pow=40.0,
             img_size=512),
         **params
     )
 
     theta = np.linspace(0.0, 180.0, 64, endpoint=False)
 
-    recon_n2self = N2SelfReconstructor(
-        'N2SelfTrained',
-        net='skip', lr=0.001,
-        n2self_n_iter=10, 
-        n2self_weights=None,
-        n2self_proj_ratio=0.2
+    recon_supervised = SupervisedReconstructor(
+        'Supervised',
+        net='skip', lr=0.001, weights=None
     )
-    recon_n2self.init_train(theta)
+    recon_supervised.init_train(theta)
 
     for i in range(50):
         print('--------------- ',i)
-        recon_n2self._eval(test_loader)
-        recon_n2self._train_one_epoch(train_loader, test_loader)
-        recon_n2self._save('epoch_{}.pth'.format(i))
-    recon_n2self._save('end.pth')
+        recon_supervised._train_one_epoch(train_loader, test_loader)
+        recon_supervised._eval(test_loader)
+        recon_supervised._save('epoch_{}.pth'.format(i))
+    recon_supervised._save('end.pth')
 
     # for x in tqdm(train_loader):
     #     print(x.shape)

@@ -8,3 +8,4 @@ from .iterative import (
 )
 from .dgr import DgrReconstructor
 from .n2self import N2SelfReconstructor
+from .supervised import SupervisedReconstructor

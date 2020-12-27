@@ -124,22 +124,25 @@ def plot_grid(
         [np.hstack(updated_imgs[i:i+number_of_columns]) for i in range(0,len(imgs), number_of_columns)  ]
     )
 
-    # 1D plot
-    if plot1d:
-        h, w = updated_imgs.shape
-        plt.figure(figsize=(5,1))
-        plt.plot(updated_imgs[plot1d,:])
-        plt.show()
-        th_h = h//20
-        th_w = (w//number_of_columns) // 20
-        for th in range(-th_h//2, th_h//2):
-            updated_imgs[plot1d+th,[i for i in range(0, w, th_w)]] = 1
-            updated_imgs[plot1d+th,[i+1 for i in range(0, w, th_w)]] = 1
-        # updated_imgs[plot1d+2,:] = 1
-
     # Save and Show
     ims = np.clip(updated_imgs, 0, 1) * 255
     ims = ims.astype(np.uint8)
+    
+    # 1D plot
+    if plot1d:
+        h, w = ims.shape
+        plt.subplots_adjust(hspace=.0)
+        fig, (ax1,ax2) =  plt.subplots(nrows=2, sharex=True)
+        ax2.set_aspect(2)
+        ax2.plot(ims[plot1d,:])
+        th_h = h//20
+        th_w = (w//number_of_columns) // 20
+        for th in range(-th_h//2, th_h//2):
+            ims[plot1d+th,[i for i in range(0, w, th_w)]] = 255
+            ims[plot1d+th,[i+1 for i in range(0, w, th_w)]] = 255
+        ax1.imshow(ims, cmap='gray')
+        plt.show()
+
     if show:
         plt.figure()
         imshow(ims)

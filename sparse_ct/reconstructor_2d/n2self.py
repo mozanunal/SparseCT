@@ -51,7 +51,8 @@ class N2SelfReconstructor(Reconstructor):
         n2self_n_iter=8000, 
         n2self_weights=None,
         n2self_selfsupervised=True,
-        n2self_proj_ratio=0.2):
+        n2self_proj_ratio=0.2,
+        learnable_filter=False):
         super(N2SelfReconstructor, self).__init__(name)
         self.n_iter = n2self_n_iter
         self.n2self_proj_ratio = n2self_proj_ratio
@@ -62,6 +63,7 @@ class N2SelfReconstructor(Reconstructor):
         self.net_type = net
         self.weights = n2self_weights
         self.selfsupervised = n2self_selfsupervised
+        self.learnable_filter = learnable_filter
 
         # for testing
         self.gt = None
@@ -102,7 +104,8 @@ class N2SelfReconstructor(Reconstructor):
             # train
             if i % self.SHOW_EVERY != 0:
                 self.net.train()
-                self.filter.train()
+                if self.learnable_filter:
+                    self.filter.train()
                 net_input, mask = self.masker.mask( projs, self.i_iter % (self.masker.n_masks - 1) )
                 x_iter = self.net(
                     self.ir(net_input)
@@ -114,7 +117,8 @@ class N2SelfReconstructor(Reconstructor):
             # val
             else:
                 self.net.eval()
-                self.filter.eval()
+                if self.learnable_filter:
+                    self.filter.eval()
                 x_iter = self.net(
                     self.ir(projs)
                 )
@@ -156,7 +160,8 @@ class N2SelfReconstructor(Reconstructor):
     
     def _calc_supervised(self, projs, theta):
         self.net.eval()
-        self.filter.eval()
+        if self.learnable_filter:
+            self.filter.eval()
         projs = np_to_torch(projs).type(self.DTYPE)
         x_iter = self.net(
             self.ir(projs)
@@ -174,12 +179,16 @@ class N2SelfReconstructor(Reconstructor):
         self.psnr_hist = []
         self.net = self._get_net(self.net_type)
         self.i_iter = 0
-        self.filter = LearnableFilter(512)
         self.r = Radon(self.IMAGE_SIZE, theta, True).to(self.DEVICE)
-        self.ir = IRadon(self.IMAGE_SIZE, theta, True, use_filter=self.filter).to(self.DEVICE)
+        if self.learnable_filter:
+            self.filter = LearnableFilter(512)
+            self.ir = IRadon(self.IMAGE_SIZE, theta, True, use_filter=self.filter).to(self.DEVICE)
+            self.optimizer = torch.optim.Adam(list(self.net.parameters())+list(self.filter.parameters()), lr=self.lr)
+        else:
+            self.ir = IRadon(self.IMAGE_SIZE, theta, True).to(self.DEVICE)
+            self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
         self.masker = Masker(width = 4, mode='interpolate')
         self.mse = torch.nn.MSELoss().to(self.DEVICE)
-        self.optimizer = torch.optim.Adam(list(self.net.parameters())+list(self.filter.parameters()), lr=self.lr)
         if self.weights:
             self._load(self.weights)
 
@@ -221,12 +230,14 @@ class N2SelfReconstructor(Reconstructor):
     ######### Training #########
     def _save(self, save_name):
         torch.save(self.net.state_dict(), save_name)
-        torch.save(self.filter.state_dict(), save_name+'.filter')
+        if self.learnable_filter:
+            torch.save(self.filter.state_dict(), save_name+'.filter')
 
     def _load(self, load_name):
         print('weights are loaded...')
         self.net.load_state_dict(torch.load(load_name))
-        self.filter.load_state_dict(torch.load(load_name+'.filter'))
+        if self.learnable_filter:
+            self.filter.load_state_dict(torch.load(load_name+'.filter'))
 
     def train(self, train_loader, test_loader, epochs=10):
         pass
@@ -234,7 +245,8 @@ class N2SelfReconstructor(Reconstructor):
     def _train_one_epoch(self, train_loader, test_loader):
         full = set(i for i in range(self.n_proj))
         self.net.train()
-        self.filter.train()
+        if self.learnable_filter:
+            self.filter.train()
 
         for projs in tqdm(train_loader):
             self.i_iter += 1
@@ -262,7 +274,8 @@ class N2SelfReconstructor(Reconstructor):
 
     def _eval(self, test_loader):
         self.net.eval()
-        self.filter.eval()
+        if self.learnable_filter:
+            self.filter.eval()
         rmse_list = []
         ssim_list = []
         psnr_list = []

@@ -5,6 +5,8 @@ from tqdm import tqdm
 import glob
 import numpy as np
 import torch
+from sparse_ct.reconstructor_2d.n2self import (
+                N2SelfReconstructor)
 from sparse_ct.reconstructor_2d.dataset import (
                 DeepLesionDataset, EllipsesDataset)
 
@@ -46,7 +48,7 @@ if __name__ == "__main__":
             ellipses_type='train', 
             return_gt=False,
             n_proj=64,
-            noise_pow=25.0,
+            # noise_pow=25.0,
             img_size=512),
         **params
     )
@@ -56,26 +58,24 @@ if __name__ == "__main__":
             ellipses_type='validation',
             return_gt=True,
             n_proj=64,
-            noise_pow=25.0,
+            # noise_pow=25.0,
             img_size=512),
         **params
     )
 
     theta = np.linspace(0.0, 180.0, 64, endpoint=False)
-
     recon_n2self = N2SelfReconstructor(
         'N2SelfTrained',
-        net='skip', lr=0.001,
+        net='unet', lr=0.0001,
         n2self_n_iter=10, 
-        n2self_weights=None,
-        n2self_proj_ratio=0.2
+        n2self_weights='iter_9000.pth',
     )
     recon_n2self.init_train(theta)
 
     for i in range(50):
         print('--------------- ',i)
-        recon_n2self._eval(test_loader)
         recon_n2self._train_one_epoch(train_loader, test_loader)
+        recon_n2self._eval(test_loader)
         recon_n2self._save('epoch_{}.pth'.format(i))
     recon_n2self._save('end.pth')
 

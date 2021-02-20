@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     recon_supervised = SupervisedReconstructor(
         'Supervised',
-        net='skip', lr=0.001, weights=None
+        net='unet', lr=0.0001, weights=None
     )
     recon_supervised.init_train(theta)
 

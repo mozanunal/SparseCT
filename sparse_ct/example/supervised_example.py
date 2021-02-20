@@ -13,8 +13,9 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
-    fname = "../data/shepp_logan.jpg"
-    #fname = "../data/ct1.jpg"
+    fname = "../data/benchmark_ellipses/2.png"
+    # fname = "../data/shepp_logan.jpg"
+    # fname = "../data/ct1.jpg"
 
 
 
@@ -24,18 +25,26 @@ if __name__ == "__main__":
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
 
     recon_fbp = IRadonReconstructor('FBP')
-    recon_sart = SartReconstructor('SART',
-                                sart_n_iter=40, sart_relaxation=0.15)
-    recon_sart_tv = SartTVReconstructor('SART+TV', 
-                                sart_n_iter=40, sart_relaxation=0.15,
-                                tv_weight=0.9, tv_n_iter=100)
-    recon_bm3d = SartBM3DReconstructor('SART+BM3D', 
-                                sart_n_iter=40, sart_relaxation=0.15,
-                                bm3d_sigma=0.35)
+    recon_sart = SartReconstructor(
+                        'SART',
+                        sart_n_iter=40, 
+                        sart_relaxation=0.15)
+    recon_sart_tv = SartTVReconstructor(
+                        'SART+TV', 
+                        sart_n_iter=40, 
+                        sart_relaxation=0.15,
+                        tv_weight=0.9, 
+                        tv_n_iter=100)
+    recon_bm3d = SartBM3DReconstructor(
+                        'SART+BM3D', 
+                        sart_n_iter=40, 
+                        sart_relaxation=0.15,
+                        bm3d_sigma=0.35)
 
-    recon_supervised = SupervisedReconstructor('Supervised',
-                weights='iter_78000.pth',
-                net='skip',)
+    recon_supervised = SupervisedReconstructor(
+                'FBP+Unet',
+                weights='iter_178200.pth',
+                net='unet')
 
 
     img_fbp = recon_fbp.calc(sinogram, theta)

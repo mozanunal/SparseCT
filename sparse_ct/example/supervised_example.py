@@ -6,6 +6,7 @@ from sparse_ct.reconstructor_2d import (
                         SartReconstructor,
                         SartTVReconstructor,
                         SartBM3DReconstructor,
+                        N2SelfReconstructor,
                         SupervisedReconstructor
                         )
 
@@ -13,14 +14,14 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
-    fname = "../data/benchmark_ellipses/2.png"
-    # fname = "../data/shepp_logan.jpg"
-    # fname = "../data/ct1.jpg"
+    # fname = "../data/benchmark_ellipses/2.png"
+    fname = "../data/shepp_logan.jpg"
+    #fname = "../data/ct1.jpg"
 
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
-            n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=30.0 )
+            n_proj=128, size=512, angle1=0.0, angle2=180.0, noise_pow=36.0 )
     # gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
 
@@ -41,10 +42,19 @@ if __name__ == "__main__":
                         sart_relaxation=0.15,
                         bm3d_sigma=0.35)
 
+    recon_selfsuper = N2SelfReconstructor(
+                        'N2Self',
+                        net='unet',
+                        n2self_weights='self-super-train9/iter_199800.pth',
+                        n2self_selfsupervised=False,
+                        learnable_filter=False
+                    )
+    
     recon_supervised = SupervisedReconstructor(
-                'FBP+Unet',
-                weights='iter_178200.pth',
-                net='unet')
+                        'FBP+Unet',
+                        weights='supervised-train2/iter_199800.pth',
+                        net='unet')
+    
 
 
     img_fbp = recon_fbp.calc(sinogram, theta)
@@ -56,9 +66,14 @@ if __name__ == "__main__":
     recon_supervised.init_train(theta)
     img_supervised = recon_supervised.calc(sinogram, theta)
 
+    recon_selfsuper.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
+    recon_selfsuper.init_train(theta)
+    img_selfsupervised = recon_selfsuper.calc(sinogram, theta)
+
 
     recons = [recon_fbp, recon_sart, 
               recon_sart_tv, recon_bm3d,
+              recon_selfsuper,
               recon_supervised]
 
     for r in recons:
@@ -67,6 +82,6 @@ if __name__ == "__main__":
             r.name, mse, psnr, ssim
         ))
 
-    plot_grid([gt, img_fbp, img_sart, img_sart_tv, img_sart_bm3d, img_supervised],
+    plot_grid([gt, img_fbp, img_sart, img_sart_tv, img_sart_bm3d, img_selfsupervised, img_supervised],
             FOCUS=FOCUS, save_name='all.png', dpi=500, plot1d=None)
             

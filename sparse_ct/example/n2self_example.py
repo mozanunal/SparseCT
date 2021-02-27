@@ -14,12 +14,12 @@ from sparse_ct.reconstructor_2d import (
 if __name__ == "__main__":
 
     #fname = "../data/benchmark_human/shepp_logan.jpg"
-    # fname = "../data/ct1.jpg"
-    fname = "../data/benchmark_ellipses/2.png"
+    fname = "../data/ct1.jpg"
+    #fname = "../data/benchmark_ellipses/2.png"
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
-            n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=40.0 )
+            n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=33.0 )
     # gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
 
@@ -33,46 +33,48 @@ if __name__ == "__main__":
                                 sart_n_iter=40, sart_relaxation=0.15,
                                 bm3d_sigma=0.35)
 
-    recon_n2self_selfsuper = N2SelfReconstructor(
-                'N2Self_SelfSupervised',
-                n2self_n_iter=4001,
-                n2self_weights=None, 
-                n2self_selfsupervised=True,
-                net='unet', lr=0.001, )
+    # recon_n2self_selfsuper = N2SelfReconstructor(
+    #             'N2Self_SelfSupervised',
+    #             n2self_n_iter=4001,
+    #             n2self_weights=None, 
+    #             n2self_selfsupervised=True,
+    #             learnable_filter=True,
+    #             net='unet', lr=0.0001, )
 
     recon_n2self_learned_single = N2SelfReconstructor(
                 'N2Self_Learned_SingleShot',
-                n2self_weights='iter_9000.pth',
+                n2self_weights='self-super-human-train-2/iter_68000.pth',
                 n2self_selfsupervised=False,
                 net='unet')
 
-    recon_n2self_learned_selfsuper = N2SelfReconstructor(
-                'N2Self_Learned_SelfSupervised',
-                n2self_n_iter=4001,
-                n2self_weights='iter_9000.pth',
-                n2self_selfsupervised=True,
-                net='unet', lr=0.001, )
+    # recon_n2self_learned_selfsuper = N2SelfReconstructor(
+    #             'N2Self_Learned_SelfSupervised',
+    #             n2self_n_iter=4001,
+    #             n2self_weights='self-super-human-train-2/iter_68000.pth',
+    #             n2self_selfsupervised=True,
+    #             net='unet', lr=0.0001, )
 
     img_fbp = recon_fbp.calc(sinogram, theta)
     img_sart = recon_sart.calc(sinogram, theta)
     img_sart_tv = recon_sart_tv.calc(sinogram, theta)
     img_sart_bm3d = recon_bm3d.calc(sinogram, theta)
 
-    recon_n2self_selfsuper.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
-    img_n2self_selfsuper = recon_n2self_selfsuper.calc(sinogram, theta)
+    # recon_n2self_selfsuper.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
+    # img_n2self_selfsuper = recon_n2self_selfsuper.calc(sinogram, theta)
 
     recon_n2self_learned_single.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
     img_n2self_learned_single = recon_n2self_learned_single.calc(sinogram, theta)
 
-    recon_n2self_learned_selfsuper.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
-    img_n2self_learned_selfsuper = recon_n2self_learned_selfsuper.calc(sinogram, theta)
+    # recon_n2self_learned_selfsuper.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
+    # img_n2self_learned_selfsuper = recon_n2self_learned_selfsuper.calc(sinogram, theta)
 
 
     recons = [recon_fbp, recon_sart, 
               recon_sart_tv, recon_bm3d,
-              recon_n2self_selfsuper, 
+            #   recon_n2self_selfsuper, 
               recon_n2self_learned_single,
-              recon_n2self_learned_selfsuper]
+            #   recon_n2self_learned_selfsuper
+            ]
 
     for r in recons:
         mse, psnr, ssim = r.eval(gt)
@@ -80,9 +82,7 @@ if __name__ == "__main__":
             r.name, mse, psnr, ssim
         ))
 
-    plot_grid([gt, img_fbp, img_sart, img_sart_tv, img_sart_bm3d, img_n2self_selfsuper, img_n2self_learned_single, img_n2self_learned_selfsuper],
+    plot_grid([gt, img_fbp, img_sart, img_sart_tv, img_sart_bm3d, \
+             img_n2self_learned_single],
+            #img_n2self_selfsuper, img_n2self_learned_single, img_n2self_learned_selfsuper],
             FOCUS=FOCUS, save_name='all.png', dpi=500)
-
-    plot_grid([gt, img_fbp, img_sart, img_sart_tv, img_sart_bm3d, img_n2self_learned_selfsuper],
-            FOCUS=FOCUS, save_name='all2.png', dpi=500)
-            

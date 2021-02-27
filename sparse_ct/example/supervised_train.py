@@ -14,35 +14,19 @@ if __name__ == "__main__":
 
     params= {'batch_size': 8,
             'shuffle': True,
-            'num_workers': 5}
+            'num_workers': 4}
 
-    # pwd_train = '/external/CT_30_000/train'
-    # pwd_test = '/external/CT_30_000/test'
+    pwd_train = '/external/CT_30_000/train'
+    pwd_test = '/external/CT_30_000/test'
 
-    # file_list_train = glob.glob(pwd_train+'/*/*/*.png')
-    # file_list_test = glob.glob(pwd_test+'/*/*/*.png')
-
-    # train_loader = torch.utils.data.DataLoader(
-    #     DeepLesionDataset(
-    #         file_list_train, 
-    #         return_gt=True,
-    #         n_proj=64,
-    #         img_size=512),
-    #     **params
-    # )
-
-    # test_loader = torch.utils.data.DataLoader(
-    #     DeepLesionDataset(
-    #         random.choices(file_list_test, k=250), 
-    #         return_gt=True,
-    #         n_proj=64,
-    #         img_size=512),
-    #     **params
-    # )
+    file_list_train = glob.glob(pwd_train+'/*/*/*/*.png')
+    file_list_test = glob.glob(pwd_test+'/*/*/*/*.png')
+    print("file_list_train", len(file_list_train))
+    print("file_list_test", len(file_list_test))
 
     train_loader = torch.utils.data.DataLoader(
-        EllipsesDataset(
-            ellipses_type='train', 
+        DeepLesionDataset(
+            file_list_train, 
             return_gt=True,
             n_proj=64,
             img_size=512),
@@ -50,13 +34,31 @@ if __name__ == "__main__":
     )
 
     test_loader = torch.utils.data.DataLoader(
-        EllipsesDataset(
-            ellipses_type='validation',
+        DeepLesionDataset(
+            random.choices(file_list_test, k=1000), 
             return_gt=True,
             n_proj=64,
             img_size=512),
         **params
     )
+
+    # train_loader = torch.utils.data.DataLoader(
+    #     EllipsesDataset(
+    #         ellipses_type='train', 
+    #         return_gt=True,
+    #         n_proj=64,
+    #         img_size=512),
+    #     **params
+    # )
+
+    # test_loader = torch.utils.data.DataLoader(
+    #     EllipsesDataset(
+    #         ellipses_type='validation',
+    #         return_gt=True,
+    #         n_proj=64,
+    #         img_size=512),
+    #     **params
+    # )
 
     theta = np.linspace(0.0, 180.0, 64, endpoint=False)
 

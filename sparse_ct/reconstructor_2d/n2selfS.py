@@ -14,42 +14,36 @@ from skimage.metrics import (
 from pytorch_radon import Radon, IRadon
 from pytorch_radon.filters import LearnableFilter
 from pytorch_msssim import ssim, ms_ssim, SSIM, MS_SSIM
-from sparse_ct.model.dncnn import DnCNN
+
 from sparse_ct.model.unet import UNet
 from sparse_ct.model.skip import Skip
 from sparse_ct.tool import im2tensor, plot_grid, np_to_torch, torch_to_np
 from .dataset import DeepLesionDataset, EllipsesDataset
 from .base import Reconstructor
-from .mask import Masker
 
-
-
-# def toSubLists(full, ratio):
-#     idx = set(
-#         random.choices(
-#             list(full),k=int(ratio*len(full))
-#         )
-#     )
-#     idxC = list(full-idx)
-#     idx = list(idx)
-#     return idx, idxC
 
 def toSubLists(full, ratio):
-    a = list(full)
-    return a[0:][::2], a[1:][::2]
+    idx = set(
+        random.choices(
+            list(full),k=int(ratio*len(full))
+        )
+    )
+    idxC = list(full-idx)
+    idx = list(idx)
+    return idx, idxC
 
 def _FOCUS(img):
     return img[300:450,200:350]
 
 
-class N2SelfReconstructor(Reconstructor):
+class N2SelfReconstructorS(Reconstructor):
     DEVICE = 'cuda'
     DTYPE = torch.cuda.FloatTensor
     INPUT_DEPTH = 1
     IMAGE_DEPTH = 1
     IMAGE_SIZE = 512
     SHOW_EVERY = 50
-    SAVE_EVERY = 2000
+    SAVE_EVERY = 600
 
     def __init__(self, name,
         net='skip', lr=0.001,
@@ -58,10 +52,10 @@ class N2SelfReconstructor(Reconstructor):
         n2self_selfsupervised=True,
         n2self_proj_ratio=0.2,
         learnable_filter=False):
-        super(N2SelfReconstructor, self).__init__(name)
+        super(N2SelfReconstructorS, self).__init__(name)
         self.n_iter = n2self_n_iter
         self.n2self_proj_ratio = n2self_proj_ratio
-        assert net in ['skip', 'unet', 'skipV2', 'dncnn']
+        assert net in ['skip', 'unet', 'skipV2']
         self.lr = lr
         
         # net
@@ -111,13 +105,15 @@ class N2SelfReconstructor(Reconstructor):
                 self.net.train()
                 if self.learnable_filter:
                     self.filter.train()
-                net_input, mask = self.masker.mask( projs, self.i_iter % (self.masker.n_masks - 1) )
+                l1, l2 = toSubLists( set([i for i in range(len(self.theta))]), self.n2self_proj_ratio)
+                irRand = IRadon(self.IMAGE_SIZE, self.theta[l2], True).to(self.DEVICE)
+                rRand = Radon(self.IMAGE_SIZE, self.theta[l1], True).to(self.DEVICE)
                 x_iter = self.net(
-                    self.ir(net_input)
+                    irRand(projs[:,:,:,l2])
                 )
                 loss = self.mse(
-                    self.r(x_iter)*mask,
-                    projs*mask
+                    rRand(x_iter),
+                    projs[:,:,:,l1]
                 )
             # val
             else:
@@ -192,7 +188,6 @@ class N2SelfReconstructor(Reconstructor):
         else:
             self.ir = IRadon(self.IMAGE_SIZE, theta, True).to(self.DEVICE)
             self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
-        self.masker = Masker(width = 4, mode='interpolate')
         self.mse = torch.nn.MSELoss().to(self.DEVICE)
         self.ssim = MS_SSIM(data_range=1.0, size_average=True, channel=self.IMAGE_DEPTH).to(self.DEVICE)
         if self.weights:
@@ -228,9 +223,6 @@ class N2SelfReconstructor(Reconstructor):
                     upsample_mode='bilinear', norm_layer=torch.nn.BatchNorm2d,
                     pad='reflect',
                     need_sigmoid=False, need_bias=True).to(self.DEVICE)
-        elif net == 'dncnn':
-            return DnCNN(in_channels=self.INPUT_DEPTH, 
-                out_channels=self.IMAGE_DEPTH, num_of_layers=6).to(self.DEVICE)
         else:
             assert False
 
@@ -262,15 +254,16 @@ class N2SelfReconstructor(Reconstructor):
 
             projs = projs.type(self.DTYPE)
 
-            self.optimizer.zero_grad()            
-            net_input, mask = self.masker.mask( projs, self.i_iter % (self.masker.n_masks - 1) )
-
+            self.optimizer.zero_grad()
+            l1, l2 = toSubLists( set([i for i in range(len(self.theta))]), self.n2self_proj_ratio)
+            irRand = IRadon(self.IMAGE_SIZE, self.theta[l2], True).to(self.DEVICE)
+            rRand = Radon(self.IMAGE_SIZE, self.theta[l1], True).to(self.DEVICE)
             x_iter = self.net(
-                self.ir(net_input)
+                irRand(projs[:,:,:,l2])
             )
             loss = self.mse(
-                self.r(x_iter)*mask,
-                projs*mask
+                rRand(x_iter),
+                projs[:,:,:,l1]
             )
 
             loss.backward()

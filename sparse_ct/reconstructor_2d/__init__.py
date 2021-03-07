@@ -1,5 +1,7 @@
 
-from .analytic import IRadonReconstructor
+from .analytic import (
+    IRadonReconstructor,
+    FBP_BM3DReconstructor)
 from .iterative import (
     SartReconstructor, 
     SartTVReconstructor, 

@@ -6,7 +6,8 @@ from sparse_ct.reconstructor_2d import (
                         SartReconstructor,
                         SartTVReconstructor,
                         SartBM3DReconstructor,
-                        N2SelfReconstructor
+                        N2SelfReconstructor,
+                        N2SelfNoMaskReconstructor
                         )
 
 
@@ -33,47 +34,47 @@ if __name__ == "__main__":
                                 sart_n_iter=40, sart_relaxation=0.15,
                                 bm3d_sigma=0.35)
 
-    # recon_n2self_selfsuper = N2SelfReconstructor(
-    #             'N2Self_SelfSupervised',
-    #             n2self_n_iter=4001,
-    #             n2self_weights=None, 
-    #             n2self_selfsupervised=True,
-    #             learnable_filter=True,
-    #             net='unet', lr=0.0001, )
+    recon_n2self_selfsuper = N2SelfNoMaskReconstructor(
+                'N2Self_SelfSupervised',
+                n2self_n_iter=4001,
+                n2self_weights=None, 
+                n2self_selfsupervised=True,
+                learnable_filter=True,
+                net='unet', lr=0.0001, )
 
-    recon_n2self_learned_single = N2SelfReconstructor(
+    recon_n2self_learned_single = N2SelfNoMaskReconstructor(
                 'N2Self_Learned_SingleShot',
                 n2self_weights='self-super-human-train-2/iter_68000.pth',
                 n2self_selfsupervised=False,
                 net='unet')
 
-    # recon_n2self_learned_selfsuper = N2SelfReconstructor(
-    #             'N2Self_Learned_SelfSupervised',
-    #             n2self_n_iter=4001,
-    #             n2self_weights='self-super-human-train-2/iter_68000.pth',
-    #             n2self_selfsupervised=True,
-    #             net='unet', lr=0.0001, )
+    recon_n2self_learned_selfsuper = N2SelfNoMaskReconstructor(
+                'N2Self_Learned_SelfSupervised',
+                n2self_n_iter=4001,
+                n2self_weights='self-super-human-train-2/iter_68000.pth',
+                n2self_selfsupervised=True,
+                net='unet', lr=0.0001, )
 
     img_fbp = recon_fbp.calc(sinogram, theta)
     img_sart = recon_sart.calc(sinogram, theta)
     img_sart_tv = recon_sart_tv.calc(sinogram, theta)
     img_sart_bm3d = recon_bm3d.calc(sinogram, theta)
 
-    # recon_n2self_selfsuper.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
-    # img_n2self_selfsuper = recon_n2self_selfsuper.calc(sinogram, theta)
+    recon_n2self_selfsuper.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
+    img_n2self_selfsuper = recon_n2self_selfsuper.calc(sinogram, theta)
 
     recon_n2self_learned_single.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
     img_n2self_learned_single = recon_n2self_learned_single.calc(sinogram, theta)
 
-    # recon_n2self_learned_selfsuper.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
-    # img_n2self_learned_selfsuper = recon_n2self_learned_selfsuper.calc(sinogram, theta)
+    recon_n2self_learned_selfsuper.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')
+    img_n2self_learned_selfsuper = recon_n2self_learned_selfsuper.calc(sinogram, theta)
 
 
     recons = [recon_fbp, recon_sart, 
               recon_sart_tv, recon_bm3d,
-            #   recon_n2self_selfsuper, 
+              recon_n2self_selfsuper, 
               recon_n2self_learned_single,
-            #   recon_n2self_learned_selfsuper
+              recon_n2self_learned_selfsuper
             ]
 
     for r in recons:
@@ -83,6 +84,6 @@ if __name__ == "__main__":
         ))
 
     plot_grid([gt, img_fbp, img_sart, img_sart_tv, img_sart_bm3d, \
-             img_n2self_learned_single],
-            #img_n2self_selfsuper, img_n2self_learned_single, img_n2self_learned_selfsuper],
+            #  img_n2self_learned_single],
+            img_n2self_selfsuper, img_n2self_learned_single, img_n2self_learned_selfsuper],
             FOCUS=FOCUS, save_name='all.png', dpi=500)

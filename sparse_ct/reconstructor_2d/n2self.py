@@ -49,7 +49,7 @@ class N2SelfReconstructor(Reconstructor):
     IMAGE_DEPTH = 1
     IMAGE_SIZE = 512
     SHOW_EVERY = 50
-    SAVE_EVERY = 2000
+    SAVE_EVERY = 1000
 
     def __init__(self, name,
         net='skip', lr=0.001,

@@ -20,25 +20,25 @@ if __name__ == "__main__":
     fname = "../data/ct1.jpg"
 
 
-    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1, n_proj=256, size=512, noise_pow=33.0 )
+    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1, n_proj=64, size=512, noise_pow=33.0 )
 
-    n_iter = 40
+    n_iter = 3
     sart_relax = 0.15
     recon_fbp = IRadonReconstructor('FBP')
     recons = [
-        SartBM3DReconstructor('BM3D10.00', bm3d_sigma=10.00, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        SartBM3DReconstructor('BM3D5.00', bm3d_sigma=5.00, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        SartBM3DReconstructor('BM3D3.00', bm3d_sigma=3.00, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        SartBM3DReconstructor('BM3D1.50', bm3d_sigma=1.50, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        SartBM3DReconstructor('BM3D1.00', bm3d_sigma=1.00, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        SartBM3DReconstructor('BM3D.95', bm3d_sigma=0.95, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        SartBM3DReconstructor('BM3D.90', bm3d_sigma=0.90, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        SartBM3DReconstructor('BM3D.80', bm3d_sigma=0.80, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        SartBM3DReconstructor('BM3D.50', bm3d_sigma=0.50, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        # SartBM3DReconstructor('BM3D10.00', bm3d_sigma=10.00, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        # SartBM3DReconstructor('BM3D5.00', bm3d_sigma=5.00, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        # SartBM3DReconstructor('BM3D3.00', bm3d_sigma=3.00, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        # SartBM3DReconstructor('BM3D1.50', bm3d_sigma=1.50, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        # SartBM3DReconstructor('BM3D1.00', bm3d_sigma=1.00, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        # SartBM3DReconstructor('BM3D.95', bm3d_sigma=0.95, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        # SartBM3DReconstructor('BM3D.90', bm3d_sigma=0.90, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        # SartBM3DReconstructor('BM3D.80', bm3d_sigma=0.80, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        # SartBM3DReconstructor('BM3D.50', bm3d_sigma=0.50, sart_n_iter=n_iter, sart_relaxation=sart_relax),
         SartBM3DReconstructor('BM3D.30', bm3d_sigma=0.30, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        SartBM3DReconstructor('BM3D.20', bm3d_sigma=0.20, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        SartBM3DReconstructor('BM3D.10', bm3d_sigma=0.10, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        SartBM3DReconstructor('BM3D.05', bm3d_sigma=0.05, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        # SartBM3DReconstructor('BM3D.20', bm3d_sigma=0.20, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        # SartBM3DReconstructor('BM3D.10', bm3d_sigma=0.10, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        # SartBM3DReconstructor('BM3D.05', bm3d_sigma=0.05, sart_n_iter=n_iter, sart_relaxation=sart_relax),
     ]
 
     imgs = [ r.calc(sinogram, theta) for r in recons ]

@@ -193,7 +193,8 @@ class N2SelfReconstructor(Reconstructor):
             self.ir = IRadon(self.IMAGE_SIZE, theta, True).to(self.DEVICE)
             self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
         self.masker = Masker(width = 4, mode='interpolate')
-        self.mse = torch.nn.MSELoss().to(self.DEVICE)
+        self.mse = torch.nn.L1Loss().to(self.DEVICE)
+        #torch.nn.MSELoss().to(self.DEVICE)
         self.ssim = MS_SSIM(data_range=1.0, size_average=True, channel=self.IMAGE_DEPTH).to(self.DEVICE)
         if self.weights:
             self._load(self.weights)

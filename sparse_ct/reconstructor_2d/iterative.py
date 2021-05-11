@@ -60,5 +60,13 @@ class SartBM3DReconstructor(SartReconstructor):
     def calc(self, projs, theta, sart_plot=False):
         image_r = super(SartBM3DReconstructor, self).calc(projs, theta, sart_plot=sart_plot)
         #denoise with tv
-        self.image_r = bm3d(image_r, self.bm3d_sigma)
+        self.image_r, bm = bm3d(image_r, self.bm3d_sigma, blockmatches=(True, True))
+        # print(type(bm), type(bm[0]), type(bm[1]))
+        # print(bm[0].shape, bm[1].shape)
+        # print(bm[0][2])
+        # print(bm[0][10])
+        # print(bm[0][23])
+        # print(bm[0][200])
+
+        # print(bm[1][0])
         return self.image_r

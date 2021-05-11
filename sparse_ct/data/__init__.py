@@ -167,7 +167,8 @@ def image_to_sparse_sinogram(
     gt = resize(pad_to_square(raw_img), (size, size)) * mask
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
-    sinogram = awgn(sinogram, noise_pow)
+    if noise_pow:
+        sinogram = awgn(sinogram, noise_pow)
     def FOCUS(x):
         return x[200:300, 200:300], (200, 200, 300, 300)
 

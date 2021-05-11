@@ -24,11 +24,13 @@ if __name__ == "__main__":
     print("file_list_train", len(file_list_train))
     print("file_list_test", len(file_list_test))
 
+    N_PROJ = 64
+
     train_loader = torch.utils.data.DataLoader(
         DeepLesionDataset(
             file_list_train, 
             return_gt=True,
-            n_proj=64,
+            n_proj=N_PROJ,
             img_size=512),
         **params
     )
@@ -37,7 +39,7 @@ if __name__ == "__main__":
         DeepLesionDataset(
             random.choices(file_list_test, k=1000), 
             return_gt=True,
-            n_proj=64,
+            n_proj=N_PROJ,
             img_size=512),
         **params
     )
@@ -46,7 +48,7 @@ if __name__ == "__main__":
     #     EllipsesDataset(
     #         ellipses_type='train', 
     #         return_gt=True,
-    #         n_proj=64,
+    #         n_proj=N_PROJ,
     #         img_size=512),
     #     **params
     # )
@@ -55,19 +57,22 @@ if __name__ == "__main__":
     #     EllipsesDataset(
     #         ellipses_type='validation',
     #         return_gt=True,
-    #         n_proj=64,
+    #         n_proj=N_PROJ,
     #         img_size=512),
     #     **params
     # )
 
-    theta = np.linspace(0.0, 180.0, 64, endpoint=False)
+    theta = np.linspace(0.0, 180.0, N_PROJ, endpoint=False)
 
     recon_supervised = SupervisedReconstructor(
         'Supervised',
-        net='unet', lr=0.0001, weights=None
+        net='unet', 
+        lr=0.0001, 
+        weights='supervised-ellipses-64-train2/iter_199800.pth'
     )
     recon_supervised.init_train(theta)
 
+    recon_supervised._eval(test_loader)
     for i in range(50):
         print('--------------- ',i)
         recon_supervised._train_one_epoch(train_loader, test_loader)

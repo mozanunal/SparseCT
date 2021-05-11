@@ -24,25 +24,27 @@ if __name__ == "__main__":
     fname = "../data/benchmark_human/19.png"
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
-                                                          n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=37.0)
+                                                          n_proj=64, size=512, 
+                                                          angle1=0.0, angle2=180.0, 
+                                                          noise_pow=33.0)
     # gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
-
+    SART_N_ITER = 40
     recons = [
         IRadonReconstructor('FBP'),
         SartReconstructor(
             'SART',
-            sart_n_iter=4,
+            sart_n_iter=SART_N_ITER,
             sart_relaxation=0.15),
         SartTVReconstructor(
             'SART+TV',
-            sart_n_iter=4,
+            sart_n_iter=SART_N_ITER,
             sart_relaxation=0.15,
-            tv_weight=0.9,
+            tv_weight=0.3,
             tv_n_iter=100),
         SartBM3DReconstructor(
             'SART+BM3D',
-            sart_n_iter=4,
+            sart_n_iter=SART_N_ITER,
             sart_relaxation=0.15,
             bm3d_sigma=0.35),
         # N2SelfReconstructor(
@@ -56,27 +58,27 @@ if __name__ == "__main__":
         N2SelfReconstructor(
             'LearnedN2Self',
             net='unet',
-            n2self_weights='self-super-train9/iter_199800.pth',
+            n2self_weights='selfsuper-ellipses-64-train9/iter_199800.pth',
             n2self_selfsupervised=False,
             learnable_filter=False),
         N2SelfReconstructor(
             'LearnedN2SelfHuman',
             net='unet',
-            n2self_weights='self-super-human-train-2/iter_68000.pth',
+            n2self_weights='selfsuper-human-128-train1/iter_138000.pth',
             n2self_selfsupervised=False,
             learnable_filter=False),
         SupervisedReconstructor(
             'FBP+Unet',
-            weights='supervised-human-train1/iter_406000.pth',
+            weights='supervised-ellipses-64-train2/iter_199800.pth',
             net='unet'),
-        SupervisedItReconstructor(
-            'FBP+Unet+It',
-            weights='supervised-human-train1/iter_406000.pth',
+        SupervisedReconstructor(
+            'FBP+Unet+Human',
+            weights='supervised-human-64-train1/iter_406000.pth',
             net='unet'),
     ]
     # for metric
     recon_sart_tv = SartTVReconstructor('SART+TV', 
-                                sart_n_iter=40, sart_relaxation=0.15,
+                                sart_n_iter=SART_N_ITER, sart_relaxation=0.15,
                                 tv_weight=0.9, tv_n_iter=100)
     img_sart_tv = recon_sart_tv.calc(sinogram, theta)
 

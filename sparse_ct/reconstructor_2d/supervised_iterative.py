@@ -88,9 +88,9 @@ class SupervisedItReconstructor(Reconstructor):
         self.net.eval()
         x_iter = None
         relaxation = 0.15
-        for i in tqdm(range(31), desc='sup.iterative'):
+        for i in tqdm(range(6), desc='sup.iterative'):
             x_iter = iradon_sart(projs, theta, image=x_iter, relaxation=relaxation)
-            if (i % 5 == 0) and i > 8:
+            if (i % 5 == 0) and i > 4:
                 relaxation = 0.15
                 x_iter = np_to_torch(x_iter).type(self.DTYPE)
                 out = self.net(x_iter)

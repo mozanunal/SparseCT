@@ -18,7 +18,7 @@ def FOCUS2(x):
 
 if __name__ == "__main__":
 
-    # fname = "../data/benchmark_ellipses/2.png"
+    # fname = "../data/benchmark_ellipses/4.png"
     # fname = "../data/shepp_logan.jpg"
     # fname = "../data/ct1.jpg"
     fname = "../data/benchmark_human/19.png"
@@ -26,10 +26,10 @@ if __name__ == "__main__":
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
                                                           n_proj=64, size=512, 
                                                           angle1=0.0, angle2=180.0, 
-                                                          noise_pow=33.0)
+                                                          noise_pow=40.0)
     # gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
-    SART_N_ITER = 40
+    SART_N_ITER = 4
     recons = [
         IRadonReconstructor('FBP'),
         SartReconstructor(
@@ -56,19 +56,19 @@ if __name__ == "__main__":
         #     learnable_filter=True,
         #     n2self_n_iter=101),
         N2SelfReconstructor(
-            'LearnedN2Self',
+            'N2Self-L2',
             net='unet',
             n2self_weights='selfsuper-ellipses-64-train9/iter_199800.pth',
             n2self_selfsupervised=False,
             learnable_filter=False),
         N2SelfReconstructor(
-            'LearnedN2SelfHuman',
+            'N2Self-L1',
             net='unet',
-            n2self_weights='selfsuper-human-128-train1/iter_138000.pth',
+            n2self_weights='selfsuper-ellipses-64-l1-train1/iter_180000.pth',
             n2self_selfsupervised=False,
             learnable_filter=False),
         SupervisedReconstructor(
-            'FBP+Unet',
+            'FBP+Unet+Ellipses',
             weights='supervised-ellipses-64-train2/iter_199800.pth',
             net='unet'),
         SupervisedReconstructor(

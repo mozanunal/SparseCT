@@ -84,6 +84,9 @@ class SupervisedReconstructor(Reconstructor):
             self._load(self.weights)
 
     def calc(self, projs, theta):
+        
+        self.init_train(theta)
+
         self.net.eval()
         projs = np_to_torch(projs).type(self.DTYPE)
         x_iter = self.net(

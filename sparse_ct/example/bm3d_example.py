@@ -9,20 +9,21 @@ from sparse_ct.reconstructor_2d import (
                         FBP_BM3DReconstructor,
                         SartReconstructor,
                         SartTVReconstructor,
-                        SartBM3DReconstructor
+                        SartBM3DReconstructor,
+                        SinBM3DReconstructor
                         )
 
 
 
 if __name__ == "__main__":
 
-    # fname = "../data/benchmark_human/20.png"
-    fname = "../data/ct1.jpg"
+    fname = "../data/benchmark_human/20.png"
+    # fname = "../data/ct1.jpg"
 
 
-    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1, n_proj=64, size=512, noise_pow=33.0 )
+    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1, n_proj=256, size=512, noise_pow=30.0 )
 
-    n_iter = 3
+    n_iter = 40
     sart_relax = 0.15
     recon_fbp = IRadonReconstructor('FBP')
     recons = [
@@ -30,15 +31,17 @@ if __name__ == "__main__":
         # SartBM3DReconstructor('BM3D5.00', bm3d_sigma=5.00, sart_n_iter=n_iter, sart_relaxation=sart_relax),
         # SartBM3DReconstructor('BM3D3.00', bm3d_sigma=3.00, sart_n_iter=n_iter, sart_relaxation=sart_relax),
         # SartBM3DReconstructor('BM3D1.50', bm3d_sigma=1.50, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        # SartBM3DReconstructor('BM3D1.00', bm3d_sigma=1.00, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        # SartBM3DReconstructor('BM3D.95', bm3d_sigma=0.95, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        # SartBM3DReconstructor('BM3D.90', bm3d_sigma=0.90, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        # SartBM3DReconstructor('BM3D.80', bm3d_sigma=0.80, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        # SartBM3DReconstructor('BM3D.50', bm3d_sigma=0.50, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        SartBM3DReconstructor('BM3D.30', bm3d_sigma=0.30, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        # SartBM3DReconstructor('BM3D.20', bm3d_sigma=0.20, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        # SartBM3DReconstructor('BM3D.10', bm3d_sigma=0.10, sart_n_iter=n_iter, sart_relaxation=sart_relax),
-        # SartBM3DReconstructor('BM3D.05', bm3d_sigma=0.05, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        IRadonReconstructor('FBP'),
+        SartReconstructor('SART', sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        SinBM3DReconstructor('BM3D1.00', bm3d_sigma=1.00, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        SinBM3DReconstructor('BM3D.95', bm3d_sigma=0.95, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        SinBM3DReconstructor('BM3D.90', bm3d_sigma=0.90, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        SinBM3DReconstructor('BM3D.80', bm3d_sigma=0.80, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        SinBM3DReconstructor('BM3D.50', bm3d_sigma=0.50, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        SinBM3DReconstructor('BM3D.30', bm3d_sigma=0.30, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        SinBM3DReconstructor('BM3D.20', bm3d_sigma=0.20, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        SinBM3DReconstructor('BM3D.10', bm3d_sigma=0.10, sart_n_iter=n_iter, sart_relaxation=sart_relax),
+        SinBM3DReconstructor('BM3D.05', bm3d_sigma=0.05, sart_n_iter=n_iter, sart_relaxation=sart_relax),
     ]
 
     imgs = [ r.calc(sinogram, theta) for r in recons ]
@@ -48,4 +51,4 @@ if __name__ == "__main__":
             r.name, mse, psnr, ssim
         ))
 
-    plot_grid( [gt]+imgs, FOCUS=FOCUS, save_name='art.png', dpi=500, number_of_rows=2  )
+    plot_grid( [gt]+imgs, FOCUS=FOCUS, save_name='art2.png', dpi=500, number_of_rows=2  )

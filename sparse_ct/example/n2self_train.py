@@ -65,7 +65,7 @@ if __name__ == "__main__":
     recon_n2self = N2SelfReconstructor(
         'N2SelfTrained',
         net='unet', lr=0.0001,
-        n2self_weights=None,#'iter_15000.pth',
+        n2self_weights=None,#'selfsuper-ellipses-64-l1-train1/iter_180000.pth',#'iter_15000.pth',
         #'selfsuper-ellipses-64-train8/iter_58800.pth', #'self-super-train9/iter_199800.pth',
         learnable_filter=False
     )

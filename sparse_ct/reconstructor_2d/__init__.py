@@ -5,8 +5,8 @@ from .analytic import (
 from .iterative import (
     SartReconstructor, 
     SartTVReconstructor, 
-    SartBM3DReconstructor
-    
+    SartBM3DReconstructor,
+    SinBM3DReconstructor
 )
 from .dgr import DgrReconstructor
 from .n2self import N2SelfReconstructor

@@ -10,14 +10,15 @@ This repo is a tool to develop sparse view CT reconstruction projects and compar
 - [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/master/papers/self_super_ct_reconstuction)
 
 ```
-@misc{unal2020selfsupervised,
-      title={Self-Supervised Training For Low Dose CT Reconstruction}, 
-      author={Mehmet Ozan Unal and Metin Ertas and Isa Yildirim},
-      year={2020},
-      eprint={2010.13232},
-      archivePrefix={arXiv},
-      primaryClass={eess.IV}
-}
+@INPROCEEDINGS{9433944,
+  author={Unal, Mehmet Ozan and Ertas, Metin and Yildirim, Isa},
+  booktitle={2021 IEEE 18th International Symposium on Biomedical Imaging (ISBI)}, 
+  title={Self-Supervised Training For Low-Dose Ct Reconstruction}, 
+  year={2021},
+  volume={},
+  number={},
+  pages={69-72},
+  doi={10.1109/ISBI48211.2021.9433944}}
 ```
 
 ### An Unsupervised Reconstruction Method For Low-Dose CT Using Deep Generative Regularization Prior

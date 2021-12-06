@@ -60,5 +60,35 @@ class SartBM3DReconstructor(SartReconstructor):
     def calc(self, projs, theta, sart_plot=False):
         image_r = super(SartBM3DReconstructor, self).calc(projs, theta, sart_plot=sart_plot)
         #denoise with tv
-        self.image_r = bm3d(image_r, self.bm3d_sigma)
+        self.image_r, bm = bm3d(image_r, self.bm3d_sigma, blockmatches=(True, True))
+        # print(type(bm), type(bm[0]), type(bm[1]))
+        # print(bm[0].shape, bm[1].shape)
+        # print(bm[0][2])
+        # print(bm[0][10])
+        # print(bm[0][23])
+        # print(bm[0][200])
+
+        # print(bm[1][0])
+        return self.image_r
+
+class SinBM3DReconstructor(SartReconstructor):
+    def __init__(self, name, 
+                sart_n_iter=10, sart_relaxation=0.15,
+                bm3d_sigma=0.1):
+        super(SinBM3DReconstructor, self).__init__(name, sart_n_iter=sart_n_iter, sart_relaxation=sart_relaxation)
+        self.bm3d_sigma = bm3d_sigma
+
+    def calc(self, projs, theta, sart_plot=False):
+        denoised_projs, bm = bm3d(projs, self.bm3d_sigma, blockmatches=(True, True))
+        image_r = super(SinBM3DReconstructor, self).calc(denoised_projs, theta, sart_plot=sart_plot)
+        #denoise with tv
+        self.image_r, bm = bm3d(image_r, self.bm3d_sigma, blockmatches=(True, True))
+        # print(type(bm), type(bm[0]), type(bm[1]))
+        # print(bm[0].shape, bm[1].shape)
+        # print(bm[0][2])
+        # print(bm[0][10])
+        # print(bm[0][23])
+        # print(bm[0][200])
+
+        # print(bm[1][0])
         return self.image_r

@@ -12,10 +12,10 @@ from sparse_ct.reconstructor_2d import (
 
 if __name__ == "__main__":
 
-    fname = "../data/benchmark_human/20.png"
+    fname = "../data/ct1.jpg"
 
 
-    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1, n_proj=32, size=512, noise_pow=40.0 )
+    gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1, n_proj=64, size=512, noise_pow=33.0 )
 
     n_iter = 40
     recon_fbp = IRadonReconstructor('FBP')

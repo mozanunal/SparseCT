@@ -37,9 +37,9 @@ def awgn(x, desired_noise_pow):
     # stats
     signal_power = np.log10( calc_power(x) )*10
     noise_power = np.log10( calc_power(noise) )*10
-    print("Signal -> mean: ", x.mean(),  " std: ", x.std())
-    print("Noise  -> mean: ", noise.mean(), " std: ", noise.std() )
-    print("S - N: ", signal_power, noise_power, " snr: ", desired_noise_pow, " k: ", k,  ) 
+    # print("Signal -> mean: ", x.mean(),  " std: ", x.std())
+    # print("Noise  -> mean: ", noise.mean(), " std: ", noise.std() )
+    # print("S - N: ", signal_power, noise_power, " snr: ", desired_noise_pow, " k: ", k,  ) 
     return x + noise
 
 def poisson_noise(x, noise_pow):
@@ -167,7 +167,8 @@ def image_to_sparse_sinogram(
     gt = resize(pad_to_square(raw_img), (size, size)) * mask
     theta = np.linspace(angle1, angle2, n_proj, endpoint=False)
     sinogram = radon(gt, theta=theta, circle=True)
-    sinogram = awgn(sinogram, noise_pow)
+    if noise_pow:
+        sinogram = awgn(sinogram, noise_pow)
     def FOCUS(x):
         return x[200:300, 200:300], (200, 200, 300, 300)
 

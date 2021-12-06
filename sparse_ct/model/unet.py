@@ -141,8 +141,6 @@ class UNet(nn.Module):
 class unetConv2(nn.Module):
     def __init__(self, in_size, out_size, norm_layer, need_bias, pad):
         super(unetConv2, self).__init__()
-
-        print(pad)
         if norm_layer is not None:
             self.conv1= nn.Sequential(conv(in_size, out_size, 3, bias=need_bias, pad=pad),
                                        norm_layer(out_size),

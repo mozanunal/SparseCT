@@ -26,8 +26,6 @@ class Reconstructor(object):
             self.image_r
             )
 
-        
-
     def calc(self, sinogra, angles):
         pass
         # should be implemented in

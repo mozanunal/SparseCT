@@ -10,40 +10,34 @@ from skimage.metrics import (
     structural_similarity, 
     peak_signal_noise_ratio
 )
+from skimage.transform import iradon, iradon_sart
 
 from pytorch_radon import Radon, IRadon
 from pytorch_radon.filters import LearnableFilter
 
-from sparse_ct.data import (image_to_sparse_sinogram, 
-                        ellipses_to_sparse_sinogram)
 from sparse_ct.model.unet import UNet
 from sparse_ct.model.skip import Skip
 from sparse_ct.tool import im2tensor, plot_grid, np_to_torch, torch_to_np
 from .base import Reconstructor
-from .mask import Masker
-
 
 
 def _FOCUS(img):
     return img[300:450,200:350]
 
 
-class MetaReconstructor(Reconstructor):
+class SupervisedItReconstructor(Reconstructor):
     DEVICE = 'cuda'
     DTYPE = torch.cuda.FloatTensor
     INPUT_DEPTH = 1
     IMAGE_DEPTH = 1
     IMAGE_SIZE = 512
     SHOW_EVERY = 50
-    SAVE_EVERY = 600
+    SAVE_EVERY = 2000
 
     def __init__(self, name,
         net='skip', lr=0.001,
-        n_iter=8000, 
         weights=None):
-        super(MetaReconstructor, self).__init__(name)
-        self.n_iter = n_iter
-        self.n_few_shots = 20
+        super(SupervisedItReconstructor, self).__init__(name)
         assert net in ['skip', 'unet', 'skipV2']
         self.lr = lr
         
@@ -51,12 +45,29 @@ class MetaReconstructor(Reconstructor):
         self.net_type = net
         self.weights = weights
 
+        # for testing
+        self.gt = None
+        self.noisy = None
+        self.FOCUS = None
+        self.log_dir = None
+
         # Iterations
         self.loss_hist = []
         self.rmse_hist = []
         self.ssim_hist = []
         self.psnr_hist = []
         self.best_result = None
+ 
+    ######### Inference #########
+    def set_for_metric(self, gt, noisy, 
+                      FOCUS=None,
+                      log_dir='log/dip'):
+        assert len(gt.shape) == 2
+        assert len(noisy.shape) == 2
+        self.gt = gt
+        self.noisy = noisy
+        self.FOCUS = FOCUS
+        self.log_dir = log_dir
 
     def init_train(self, theta):
         self.theta = torch.from_numpy(theta).type(self.DTYPE)
@@ -67,16 +78,29 @@ class MetaReconstructor(Reconstructor):
         self.psnr_hist = []
         self.net = self._get_net(self.net_type)
         self.i_iter = 0
-        self.r = Radon(self.IMAGE_SIZE, theta, True).to(self.DEVICE)
-        self.masker = Masker(width = 4, mode='interpolate')
+        self.ir = IRadon(self.IMAGE_SIZE, theta, True).to(self.DEVICE)
         self.mse = torch.nn.MSELoss().to(self.DEVICE)
         self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr)
-        self.meta_optimizer = torch.optim.Adam(self.net.parameters(), lr=self.lr*0.1)
         if self.weights:
             self._load(self.weights)
 
     def calc(self, projs, theta):
-        pass
+        self.net.eval()
+        x_iter = None
+        relaxation = 0.15
+        for i in tqdm(range(6), desc='sup.iterative'):
+            x_iter = iradon_sart(projs, theta, image=x_iter, relaxation=relaxation)
+            if (i % 5 == 0) and i > 4:
+                relaxation = 0.15
+                x_iter = np_to_torch(x_iter).type(self.DTYPE)
+                out = self.net(x_iter)
+                x_iter = np.clip(torch_to_np(out), 0, 1).astype(np.float64)
+            # metric
+            self.image_r = x_iter
+            mse, psnr, ssim = self.eval(self.gt)
+            print(i, mse, psnr, ssim)
+        self.image_r = x_iter.copy()
+        return self.image_r
 
     def _get_net(self, net):
         # Init Net
@@ -115,37 +139,25 @@ class MetaReconstructor(Reconstructor):
         pass
 
     def _train_one_epoch(self, train_loader, test_loader):
-        full = set(i for i in range(self.n_proj))
         self.net.train()
 
-        for projs, gt in tqdm(train_loader):
+        for projs, gts in tqdm(train_loader):
             self.i_iter += 1
-            batch_size = projs.size[0]
+
             projs = projs.type(self.DTYPE)
+            gts = gts.type(self.DTYPE)
 
-            net_input = torch.rand(
-                    batch_size, 
-                    self.INPUT_DEPTH, 
-                    self.IMAGE_SIZE, 
-                    self.IMAGE_SIZE
-                    ).type(self.DTYPE)
+            self.optimizer.zero_grad()            
 
-
-            self.meta_optimizer.zero_grad()
-
-            for _ in range(self.n_few_shots):
-                self.optimizer.zero_grad()
-                x_iter = self.net(net_input)
-                loss = self.mse(
-                    self.r(x_iter),
-                    projs
-                )
-                loss.backward(retain_graph=True)
-                self.optimizer.step()
-            
-            self.meta_optimizer.step()
-            
-            
+            x_iter = self.net(
+                self.ir(projs)
+            )
+            loss = self.mse(
+                x_iter,
+                gts
+            )
+            loss.backward()
+            self.optimizer.step()
             if self.i_iter % self.SHOW_EVERY == 0:
                 print('loss', loss.item())
             if self.i_iter % self.SAVE_EVERY == 0:
@@ -171,9 +183,6 @@ class MetaReconstructor(Reconstructor):
                 rmse_list.append(mean_squared_error(x_iter_npy, gt))
                 ssim_list.append(structural_similarity(x_iter_npy, gt, multichannel=False))
                 psnr_list.append(peak_signal_noise_ratio(x_iter_npy, gt))
-                # print('{}/{}- psnr: {:.3f} - ssim: {:.3f} - rmse: {:.5f}'.format(
-                #     self.name, i, psnr_list[-1], ssim_list[-1], rmse_list[-1],
-                # ))
         print('EVAL_RESULT {}/{}- psnr: {:.3f} - ssim: {:.3f} - rmse: {:.5f}'.format(
                 self.name, self.i_iter, np.mean(psnr_list), np.mean(ssim_list), np.mean(rmse_list),
             ))

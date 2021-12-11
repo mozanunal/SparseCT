@@ -2,10 +2,8 @@ bm3d==3.0.7
 dival==0.4.7
 image-similarity-measures==0.3.4
 pytorch-msssim==0.2.0
-pytorch-radon==0.1.3
 scikit-image==0.16.2
 scikit-learn==0.22.1
 scipy==1.5.4
 torch==1.4.0
-torch-radon==1.0.0
 torchvision==0.5.0

@@ -21,12 +21,12 @@ if __name__ == "__main__":
     # fname = "../data/benchmark_ellipses/4.png"
     # fname = "../data/shepp_logan.jpg"
     # fname = "../data/ct1.jpg"
-    fname = "../data/benchmark_human/19.png"
+    fname = "../data/benchmark_human/36.png"
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
                                                           n_proj=64, size=512, 
                                                           angle1=0.0, angle2=180.0, 
-                                                          noise_pow=40.0)
+                                                          noise_pow=33.0)
     # gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
     SART_N_ITER = 4
@@ -58,13 +58,13 @@ if __name__ == "__main__":
         N2SelfReconstructor(
             'N2Self-L2',
             net='unet',
-            n2self_weights='selfsuper-ellipses-64-train9/iter_199800.pth',
+            n2self_weights='selfsuper-ellipses-64-train9/iter_24000.pth',
             n2self_selfsupervised=False,
             learnable_filter=False),
         N2SelfReconstructor(
-            'N2Self-L1',
+            'N2Self-Human',
             net='unet',
-            n2self_weights='selfsuper-ellipses-64-l1-train1/iter_180000.pth',
+            n2self_weights='selfsuper-human-128-train1/iter_24000.pth',
             n2self_selfsupervised=False,
             learnable_filter=False),
         SupervisedReconstructor(

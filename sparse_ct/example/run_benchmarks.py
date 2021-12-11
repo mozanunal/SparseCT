@@ -15,15 +15,16 @@ from sparse_ct.reconstructor_2d import (
     SupervisedReconstructor)
 
 
-def benchmark_all(recon, data_list, theta_list):
+def benchmark_all(recon, data_list, theta_list, noise_list):
     for data in data_list:
         for theta in theta_list:
-            benchmark(
-                data,
-                recon,
-                theta,
-                40.0
-            )
+            for noise in noise_list:
+                benchmark(
+                    data,
+                    recon,
+                    theta,
+                    noise
+                )
 
 
 
@@ -65,19 +66,13 @@ recon_n2s_selfsuper = N2SelfReconstructor('N2S_SelfSup_02',
                         n2self_selfsupervised=True,
                         net='skip', lr=0.01, )
 
-recon_n2s_singleshot = N2SelfReconstructor('N2S_SingleS-L2',
+recon_n2s_singleshot = N2SelfReconstructor('N2S_L2_train9_iter_199800.pth',
                         n2self_weights='selfsuper-ellipses-64-train9/iter_199800.pth',
                         n2self_selfsupervised=False,
                         net='unet',)
 
-recon_learned_selfsuper = N2SelfReconstructor('N2S_LearSelfSup_02_05',
-                        n2self_n_iter=4001, n2self_proj_ratio=0.2,
-                        n2self_weights='iter_95000.pth',#'training-04/iter_100000.pth',
-                        n2self_selfsupervised=True,
-                        net='skipV2', lr=0.01, )
-
 recon_learned_supervised = SupervisedReconstructor(
-            'FBP+Unet+Human',
+            'SUPERVISED_train1_iter_406000.pth',
             weights='supervised-human-64-train1/iter_406000.pth',
             net='unet')
 
@@ -92,13 +87,15 @@ if __name__ == "__main__":
     theta_list = [
                 np.linspace(0.0, 180.0, 32, endpoint=False),
                 np.linspace(0.0, 180.0, 64, endpoint=False),
-                np.linspace(0.0, 180.0, 100, endpoint=False),
+                np.linspace(0.0, 180.0, 128, endpoint=False),
                 ]
+    noise_list = [40.0, 37.0, 33.0, 30.0]
 
     benchmark_all(
         recon_learned_supervised,
         data_list,
-        theta_list
+        theta_list,
+        noise_list
     )
 
 

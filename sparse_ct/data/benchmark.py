@@ -26,7 +26,7 @@ def benchmark(
 
     images=get_images(images_path)
 
-    log_filename = 'benchmark_{recon}'.format(
+    log_filename = 'benchmark/benchmark_{recon}'.format(
         recon=recon.name
     )
     
@@ -79,6 +79,16 @@ def benchmark(
             np.std(ssim_list)
         ))
     logging.warning('Done.')
+    logging.critical('Summary;{};{};{};{};{:.2f};{:.2f};{:.2f};{:.2f}'.format(
+        recon.name,
+        images_path,
+        len(theta),
+        noise_pow,
+        np.mean(psnr_list),
+        np.std(psnr_list),
+        np.mean(ssim_list),
+        np.std(ssim_list)
+    ))
 
 
 if __name__ == "__main__":

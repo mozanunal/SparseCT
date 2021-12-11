@@ -4,31 +4,20 @@ import glob
 
 files = glob.glob('benchmark/*.log')
 
-
+# 2021-12-06 17:50:10,766 - WARNING - images: ../data/benchmark_ellipses
+# 2021-12-06 17:50:10,766 - WARNING - n_proj: 32
+# 2021-12-06 17:50:10,766 - WARNING - noise_pow: 40.0
 def parse(f):
     f_dict = {
 
     }
     for line in open(f).readlines():
-        line = line.split('-')[4].replace('\n','')
-        if 'Avg' in line:
-            _, _, _, psnr, ssim = line.split(' ')
-            psnr = psnr.replace('PSNR:', '')
-            ssim = ssim.replace('SSIM:', '')
-        if 'Std' in line:
-            _, _, _, psnr_std, ssim_std = line.split(' ')
-            psnr_std = psnr_std.replace('PSNR:', '')
-            ssim_std = ssim_std.replace('SSIM:', '')
-            print("{:.2f}+{:.2f} {:.2f}+{:.2f}".format(
-                    float(psnr), float(psnr_std),
-                    float(ssim)*100, float(ssim_std)*100,
-                ), 
-                end=' ' )
-
-            
+        if 'CRITICAL' in line:
+            info = line.replace('\n','').split('-')[4]
+            print(info)     
 
 for f in files:
-    print('\n', f, end=' ')
+    print('\n', f)
     parse(f)
 
 print()

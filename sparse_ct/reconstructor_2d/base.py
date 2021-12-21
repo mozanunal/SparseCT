@@ -18,6 +18,23 @@ class Reconstructor(object):
             peak_signal_noise_ratio(gt,self.image_r),
             structural_similarity(gt,self.image_r)
         )
+
+    def evalV2(self, gt, focus):
+        assert self.image_r is not None
+        img_r_focussed, _ = focus(self.image_r)
+        gt_focussed, _ = focus(gt)
+        return (
+            (
+                mean_squared_error(gt_focussed, img_r_focussed),
+                peak_signal_noise_ratio(gt_focussed, img_r_focussed),
+                structural_similarity(gt_focussed, img_r_focussed)
+            ),
+            (
+                mean_squared_error(gt, self.image_r),
+                peak_signal_noise_ratio(gt, self.image_r),
+                structural_similarity(gt, self.image_r)
+            )
+        )
     
     def save_result(self):
         assert self.image_r is not None

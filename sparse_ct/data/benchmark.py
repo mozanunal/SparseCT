@@ -26,7 +26,7 @@ def benchmark(
 
     images=get_images(images_path)
 
-    log_filename = 'benchmark_{recon}'.format(
+    log_filename = 'benchmark/benchmark_{recon}'.format(
         recon=recon.name
     )
     
@@ -51,7 +51,7 @@ def benchmark(
                         channel=1, n_proj=len(theta), size=512,
                         angle1=0.0, angle2=180.0, noise_pow=noise_pow)
         # set metrics
-        if type(recon) == DgrReconstructor or type(recon) == N2SelfReconstructor:
+        if type(recon) == DgrReconstructor:# or type(recon) == N2SelfReconstructor:
             recon_bm3d = SartReconstructor('SART', 
                             sart_n_iter=40, sart_relaxation=0.15)
             img_sart_bm3d = recon_bm3d.calc(sinogram, theta)
@@ -79,6 +79,16 @@ def benchmark(
             np.std(ssim_list)
         ))
     logging.warning('Done.')
+    logging.critical('Summary;{};{};{};{};{:.2f};{:.2f};{:.2f};{:.2f}'.format(
+        recon.name,
+        images_path,
+        len(theta),
+        noise_pow,
+        np.mean(psnr_list),
+        np.std(psnr_list),
+        np.mean(ssim_list),
+        np.std(ssim_list)
+    ))
 
 
 if __name__ == "__main__":

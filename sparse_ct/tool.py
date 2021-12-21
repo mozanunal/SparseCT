@@ -121,7 +121,7 @@ def plot_grid(
     # GRID SHAPE
     number_of_columns = len(imgs) // number_of_rows
     updated_imgs = np.vstack(
-        [np.hstack(updated_imgs[i:i+number_of_columns]) for i in range(0,len(imgs), number_of_columns)  ]
+        [np.hstack(updated_imgs[i:i+number_of_columns]) for i in range(0, len(imgs), number_of_columns)  ]
     )
 
     # Save and Show
@@ -131,9 +131,10 @@ def plot_grid(
     # 1D plot
     if plot1d:
         h, w = ims.shape
-        plt.subplots_adjust(hspace=.0)
+        #plt.figure(figsize=(30, 30))
         fig, (ax1,ax2) =  plt.subplots(nrows=2, sharex=True)
-        ax2.set_aspect(2)
+        plt.subplots_adjust(hspace = .001)
+        #ax2.set_aspect(4.0/len(imgs))
         ax2.plot(ims[plot1d,:])
         th_h = h//20
         th_w = (w//number_of_columns) // 20
@@ -141,7 +142,8 @@ def plot_grid(
             ims[plot1d+th,[i for i in range(0, w, th_w)]] = 255
             ims[plot1d+th,[i+1 for i in range(0, w, th_w)]] = 255
         ax1.imshow(ims, cmap='gray')
-        plt.show()
+        plt.savefig("plt_" + save_name, 
+                    dpi=dpi, bbox_inches="tight")
 
     if show:
         plt.figure()

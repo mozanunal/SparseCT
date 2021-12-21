@@ -12,8 +12,8 @@ from sparse_ct.reconstructor_2d import (
 
 
 if __name__ == "__main__":
-    fname = "../data/benchmark_ellipses/6.png"
-    #fname = "../data/ct2.jpg"
+    #fname = "../data/benchmark_ellipses/6.png"
+    fname = "../data/ct2.jpg"
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,

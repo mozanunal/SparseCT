@@ -41,15 +41,15 @@ recon_sart_bm3d = SartBM3DReconstructor('SART+BM3Ds0.35',
                         sart_n_iter=40, sart_relaxation=0.15,
                         bm3d_sigma=0.35)
 
-recon_dgr = DgrReconstructor('DGR_0.80_0.00_0.10_0.10', 
+recon_dgr = DgrReconstructor('DGR_0.90_0.00_0.00_0.10', 
                         dip_n_iter=4001, 
                         net='skip',
                         lr=0.01,
                         reg_std=1./100,
-                        w_proj_loss=0.80,
+                        w_proj_loss=0.90,
                         w_perceptual_loss=0.00,
                         w_tv_loss=0.10,
-                        w_ssim_loss=0.10)
+                        w_ssim_loss=0.00)
 recon_rdgr = DgrReconstructor('RDGR_1.00_0.00_0.00', 
                         dip_n_iter=4001, 
                         net='skip',
@@ -76,6 +76,16 @@ recon_learned_supervised = SupervisedReconstructor(
             weights='supervised-human-64-train1/iter_406000.pth',
             net='unet')
 
+recon_dgr = DgrReconstructor('DGR_0.00_0.00_0.80_0.20', 
+                        dip_n_iter=4001, 
+                        net='skip',
+                        lr=0.01,
+                        reg_std=1./100,
+                        w_proj_loss=0.0,
+                        w_perceptual_loss=0.00,
+                        w_ssim_loss=0.80,
+                        w_tv_loss=0.20)
+
 
 if __name__ == "__main__":
 
@@ -83,16 +93,21 @@ if __name__ == "__main__":
     p_ellipses = '../data/benchmark_ellipses'
 
 
-    data_list = [p_ellipses, p_human]
+    # data_list = [p_ellipses, p_human]
+    # theta_list = [
+    #             np.linspace(0.0, 180.0, 32, endpoint=False),
+    #             np.linspace(0.0, 180.0, 64, endpoint=False),
+    #             np.linspace(0.0, 180.0, 128, endpoint=False),
+    #             ]
+    # noise_list = [40.0, 37.0, 33.0, 30.0]
+    data_list = [p_ellipses]
     theta_list = [
-                np.linspace(0.0, 180.0, 32, endpoint=False),
                 np.linspace(0.0, 180.0, 64, endpoint=False),
-                np.linspace(0.0, 180.0, 128, endpoint=False),
                 ]
-    noise_list = [40.0, 37.0, 33.0, 30.0]
+    noise_list = [39.0]
 
     benchmark_all(
-        recon_learned_supervised,
+        recon_dgr,
         data_list,
         theta_list,
         noise_list

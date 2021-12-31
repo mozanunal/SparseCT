@@ -17,7 +17,7 @@ def parse(f):
             print(info)     
 
 for f in files:
-    print('\n', f)
+    #print('\n', f)
     parse(f)
 
 print()

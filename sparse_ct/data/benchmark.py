@@ -79,7 +79,7 @@ def benchmark(
             np.std(ssim_list)
         ))
     logging.warning('Done.')
-    logging.critical('Summary;{};{};{};{};{:.2f};{:.2f};{:.2f};{:.2f}'.format(
+    logging.critical('Summary;{};{};{};{};{:.2f};{:.2f};{:.4f};{:.4f}'.format(
         recon.name,
         images_path,
         len(theta),

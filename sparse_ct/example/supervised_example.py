@@ -22,15 +22,15 @@ if __name__ == "__main__":
     #fname = "../data/benchmark_ellipses/5.png"
     #fname = "../data/sl.png"
     # fname = "../data/ct1.jpg"
-    fname = "../data/selected/2.x.png"
+    fname = "../data/selected/3.x.png"
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
                                                           n_proj=64, size=512, 
                                                           angle1=0.0, angle2=180.0, 
-                                                          noise_pow=50.0)
+                                                          noise_pow=33.0)
     # gt, sinogram, theta, FOCUS = ellipses_to_sparse_sinogram(part='validation', channel=1,
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=25.0 )
-    SART_N_ITER = 4
+    SART_N_ITER = 40
     recons = [
         IRadonReconstructor('FBP'),
         SartReconstructor(

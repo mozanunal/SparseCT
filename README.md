@@ -27,13 +27,15 @@ This repo is a tool to develop sparse view CT reconstruction projects and compar
 - [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/master/papers/dgr)
 
 ```
-@misc{unal2020unsupervised,
-      title={An Unsupervised Reconstruction Method For Low-Dose CT Using Deep Generative Regularization Prior}, 
-      author={Mehmet Ozan Unal and Metin Ertas and Isa Yildirim},
-      year={2020},
-      eprint={2012.06448},
-      archivePrefix={arXiv},
-      primaryClass={eess.IV}
+@article{unal2020unsupervised,
+  title={An Unsupervised Reconstruction Method For Low-Dose CT Using Deep Generative Regularization Prior},
+  author={Unal, Mehmet Ozan and Ertas, Metin and Yildirim, Isa},
+  journal={Biomedical Signal Processing and Control},
+  volume={75},
+  number={1746-8094},
+  pages={103598},
+  year={2020},
+  publisher={Elsevier}
 }
 ```
 

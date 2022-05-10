@@ -34,12 +34,12 @@ recon_sart = SartReconstructor('SART',
                         sart_n_iter=40, 
                         sart_relaxation=0.15)
 
-recon_sart_tv = SartTVReconstructor('SART+TVw0.9',
+recon_sart_tv = SartTVReconstructor('SART+TVw0.7',
                         sart_n_iter=40, sart_relaxation=0.15,
-                        tv_weight=0.9, tv_n_iter=100)
-recon_sart_bm3d = SartBM3DReconstructor('SART+BM3Ds0.35', 
+                        tv_weight=0.7, tv_n_iter=100)
+recon_sart_bm3d = SartBM3DReconstructor('SART+BM3Ds0.20', 
                         sart_n_iter=40, sart_relaxation=0.15,
-                        bm3d_sigma=0.35)
+                        bm3d_sigma=0.20)
 
 recon_dgr = DgrReconstructor('DGR_0.90_0.00_0.00_0.10', 
                         dip_n_iter=4001, 
@@ -66,8 +66,8 @@ recon_n2s_selfsuper = N2SelfReconstructor('N2S_SelfSup_02',
                         n2self_selfsupervised=True,
                         net='skip', lr=0.01, )
 
-recon_n2s_singleshot = N2SelfReconstructor('N2S_L2_train9_iter_199800.pth',
-                        n2self_weights='selfsuper-ellipses-64-train9/iter_199800.pth',
+recon_n2s_singleshot = N2SelfReconstructor('N2S_h_L2_train1_128_iter_138000.pth',
+                        n2self_weights='selfsuper-human-128-train1/iter_138000.pth',
                         n2self_selfsupervised=False,
                         net='unet',)
 
@@ -93,21 +93,21 @@ if __name__ == "__main__":
     p_ellipses = '../data/benchmark_ellipses'
 
 
-    # data_list = [p_ellipses, p_human]
-    # theta_list = [
-    #             np.linspace(0.0, 180.0, 32, endpoint=False),
-    #             np.linspace(0.0, 180.0, 64, endpoint=False),
-    #             np.linspace(0.0, 180.0, 128, endpoint=False),
-    #             ]
-    # noise_list = [40.0, 37.0, 33.0, 30.0]
-    data_list = [p_ellipses]
+    data_list = [p_human]
     theta_list = [
-                np.linspace(0.0, 180.0, 64, endpoint=False),
+                #np.linspace(0.0, 180.0, 32, endpoint=False),
+                #np.linspace(0.0, 180.0, 64, endpoint=False),
+                np.linspace(0.0, 180.0, 128, endpoint=False),
                 ]
-    noise_list = [39.0]
+    noise_list = [40.0, 37.0, 33.0, 30.0]
+    # data_list = [p_ellipses]
+    # theta_list = [
+    #             np.linspace(0.0, 180.0, 64, endpoint=False),
+    #             ]
+    # noise_list = [39.0]
 
     benchmark_all(
-        recon_dgr,
+        recon_n2s_singleshot,
         data_list,
         theta_list,
         noise_list

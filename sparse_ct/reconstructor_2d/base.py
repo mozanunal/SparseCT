@@ -6,6 +6,8 @@ from skimage.metrics import (
     structural_similarity,
     peak_signal_noise_ratio)
 
+from sparse_ct.data import create_circular_mask
+
 class Reconstructor(object):
     def __init__(self, name):
         self.name = name
@@ -13,10 +15,13 @@ class Reconstructor(object):
 
     def eval(self, gt):
         assert self.image_r is not None
+        mask = create_circular_mask(512, 512)
+        gt_x = np.clip(gt, 0, 1) * mask
+        im_x = np.clip(self.image_r, 0, 1) * mask
         return (
-            mean_squared_error(gt,self.image_r),
-            peak_signal_noise_ratio(gt,self.image_r),
-            structural_similarity(gt,self.image_r)
+            mean_squared_error(gt_x, im_x),
+            peak_signal_noise_ratio(gt_x, im_x),
+            structural_similarity(gt_x, im_x)
         )
 
     def evalV2(self, gt, focus):

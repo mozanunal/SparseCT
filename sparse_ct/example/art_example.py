@@ -52,4 +52,4 @@ if __name__ == "__main__":
             r.name, mse, psnr, ssim
         ))
 
-    plot_grid( [gt]+imgs, FOCUS=FOCUS, save_name='art.png', dpi=500 )
+    plot_grid( [gt]+imgs, FOCUS=FOCUS, save_name='art.png', dpi=500, number_of_rows=3 )

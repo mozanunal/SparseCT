@@ -6,8 +6,8 @@ This repo is a tool to develop sparse view CT reconstruction projects and compar
 
 ### Self-Supervised Training For Low Dose CT Reconstruction
 
-- [Click here to access the paper](https://arxiv.org/abs/2010.13232)
-- [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/master/papers/self_super_ct_reconstuction)
+- [Click here to access the paper](https://ieeexplore.ieee.org/abstract/document/9433944)
+- [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/SelfSuperLDCT-Paper)
 
 ```
 @INPROCEEDINGS{9433944,
@@ -23,8 +23,8 @@ This repo is a tool to develop sparse view CT reconstruction projects and compar
 
 ### An Unsupervised Reconstruction Method For Low-Dose CT Using Deep Generative Regularization Prior
 
-- [Click here to access the paper](https://arxiv.org/abs/2012.06448)
-- [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/master/papers/dgr)
+- [Click here to access the paper](https://www.sciencedirect.com/science/article/pii/S1746809422001203)
+- [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/DGR-Paper)
 
 ```
 @article{unal2020unsupervised,
@@ -41,7 +41,7 @@ This repo is a tool to develop sparse view CT reconstruction projects and compar
 
 ## Demo
 
-Example resuls from from [this paper](https://arxiv.org/abs/2010.13232).
+Example resuls from from [this paper](https://ieeexplore.ieee.org/abstract/document/9433944).
 
 ![](https://raw.githubusercontent.com/mozanunal/SparseCT/master/docs/images/result2.png)
 

@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
 
     gt, sinogram, theta, FOCUS = image_to_sparse_sinogram(fname, channel=1,
-            n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=40.0 )
+            n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=33.0 )
    
     #print(gt.shape, gt.dtype, gt.max(), gt.min())
     #print(sinogram.shape, sinogram.dtype, sinogram.max(), sinogram.min())
@@ -46,10 +46,10 @@ if __name__ == "__main__":
                                 net='skip',
                                 lr=0.01,
                                 reg_std=1./100,
-                                w_proj_loss=0.99,
+                                w_proj_loss=0.90,
                                 # w_perceptual_loss=0.1,
                                 w_tv_loss=0.0,
-                                w_ssim_loss=0.01
+                                w_ssim_loss=0.10
                             )
 
     # recon_n2self_selfsuper = N2SelfReconstructor('N2Self_SelfSupervised',
@@ -75,10 +75,10 @@ if __name__ == "__main__":
     img_sart_tv = recon_sart_tv.calc(sinogram, theta)
     img_sart_bm3d = recon_bm3d.calc(sinogram, theta)
 
-    recon_dip.set_for_metric(gt, img_sart, FOCUS=FOCUS, log_dir='../log/dip')
+    recon_dip.set_for_metric(gt, img_sart, FOCUS=FOCUS, log_dir='./log/dip')
     img_dip = recon_dip.calc(sinogram, theta)
 
-    recon_dip_rand.set_for_metric(gt, img_sart, FOCUS=FOCUS, log_dir='../log/dip')
+    recon_dip_rand.set_for_metric(gt, img_sart, FOCUS=FOCUS, log_dir='./log/dip')
     img_dip_rand = recon_dip_rand.calc(sinogram, theta)
 
     # recon_n2self_selfsuper.set_for_metric(gt, img_sart_tv, FOCUS=FOCUS, log_dir='../log/dip')

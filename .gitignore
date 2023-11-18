@@ -134,7 +134,7 @@ dmypy.json
 papers/*/log/*
 *log.txt
 *.npy
-
+log
 sparse_ct/example/*.png
 sparse_ct/example/*backup*
 

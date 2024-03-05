@@ -4,10 +4,25 @@ This repo is a tool to develop sparse view CT reconstruction projects and compar
 
 ## Papers
 
+### Proj2Proj: Self-supervised low-dose CT reconstruction
+
+- [Click here to access the paper](https://peerj.com/articles/cs-1849/)
+
+```
+@article{unal2024proj2proj,
+  title={Proj2Proj: self-supervised low-dose CT reconstruction},
+  author={Unal, Mehmet Ozan and Ertas, Metin and Yildirim, Isa},
+  journal={PeerJ Computer Science},
+  volume={10},
+  pages={e1849},
+  year={2024},
+  publisher={PeerJ Inc.}
+}
+```
+
 ### Self-Supervised Training For Low Dose CT Reconstruction
 
 - [Click here to access the paper](https://ieeexplore.ieee.org/abstract/document/9433944)
-- [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/SelfSuperLDCT-Paper)
 
 ```
 @INPROCEEDINGS{9433944,
@@ -24,7 +39,6 @@ This repo is a tool to develop sparse view CT reconstruction projects and compar
 ### An Unsupervised Reconstruction Method For Low-Dose CT Using Deep Generative Regularization Prior
 
 - [Click here to access the paper](https://www.sciencedirect.com/science/article/pii/S1746809422001203)
-- [Click here to reach the experiments of the paper](https://github.com/mozanunal/SparseCT/tree/DGR-Paper)
 
 ```
 @article{unal2020unsupervised,

@@ -76,12 +76,9 @@ class Masker():
 
 
 def pixel_grid_mask(shape, patch_size, phase_x, phase_y):
-    A = torch.zeros(shape[-2:])
-    for i in range(shape[-2]):
-        for j in range(shape[-1]):
-            if (i % patch_size == phase_x and j % patch_size == phase_y):
-                A[i, j] = 1
-    return torch.Tensor(A)
+    mask = torch.zeros(shape[-2:])
+    mask[phase_x::patch_size, phase_y::patch_size] = 1
+    return mask
 
 
 def interpolate_mask(tensor, mask, mask_inv):

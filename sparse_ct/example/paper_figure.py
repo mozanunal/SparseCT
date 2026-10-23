@@ -7,7 +7,7 @@ from sparse_ct.reconstructor_2d import (
                         SartTVReconstructor,
                         SartBM3DReconstructor,
                         DgrReconstructor,
-                        N2SelfReconstructor)
+                        Proj2ProjReconstructor)
 
 
 
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=37.0 )
     # def FOCUS(x):
     #     return x[220:300, 200:300], (220, 200, 300, 300)
-    
+
     gt, sinogram, theta, _ = image_to_sparse_sinogram("../data/benchmark_ellipses/7.png", channel=1,
             n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=33.0 )
     def FOCUS(x):
@@ -28,12 +28,12 @@ if __name__ == "__main__":
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=33.0 )
     # def FOCUS(x):
     #     return x[200:320, 210:310], (200, 210, 320, 310)
-    
+
     # gt, sinogram, theta, _ = image_to_sparse_sinogram("../data/benchmark_human/19.png", channel=1,
     #         n_proj=64, size=512, angle1=0.0, angle2=180.0, noise_pow=37.0 )
     # def FOCUS(x):
     #     return x[200:300, 200:300], (200, 200, 300, 300)
-   
+
     recon_fbp = IRadonReconstructor('FBP')
     recon_sart = SartReconstructor('SART', sart_n_iter=40, sart_relaxation=0.15)
     recon_bm3d = SartBM3DReconstructor('SART+BM3D',
@@ -41,7 +41,7 @@ if __name__ == "__main__":
                                 bm3d_sigma=0.2)
 
     recon_dip = DgrReconstructor('DGR',
-                                dip_n_iter=4001, 
+                                dip_n_iter=4001,
                                 net='skip',
                                 lr=0.01,
                                 reg_std=1./100,
@@ -65,4 +65,4 @@ if __name__ == "__main__":
         ))
 
     plot_grid([img_sart_bm3d], FOCUS=FOCUS, save_name='paper.png', dpi=500)
-            
+

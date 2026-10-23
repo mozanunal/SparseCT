@@ -6,7 +6,6 @@ from skimage.color import gray2rgb
 from skimage import io
 from scipy.io import loadmat
 
-from dival.datasets.ellipses_dataset import EllipsesDataset
 import sys
 
 def db2ratio(db):
@@ -109,12 +108,7 @@ def noisy_shepp_logan(
 
 
 
-elipData = EllipsesDataset(
-        image_size = 512,
-        train_len = 32000,
-        validation_len = 1000,
-        test_len = 0,
-        )
+elipData = None
 
 def ellipses_to_sparse_sinogram(
     part='train',
@@ -127,6 +121,13 @@ def ellipses_to_sparse_sinogram(
     noise_pow=25.0,
     noise_type='gaussian'
 ):
+    global elipData
+    if elipData is None:
+        from dival.datasets.ellipses_dataset import EllipsesDataset
+
+        elipData = EllipsesDataset(
+            image_size=512, train_len=32000, validation_len=1000, test_len=0,
+        )
     mask = create_circular_mask(size,size)
     gt = np.array(next(elipData.generator(part=part))).astype('float64')
     gt = pad_to_square(gt, size_big=size) * mask

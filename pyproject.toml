@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sparse-ct-mozanunal"
+version = "0.1.0"
+description = "Proj2Proj self-supervised low-dose CT reconstruction and research baselines"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{name = "Mehmet Ozan Unal", email = "mehmetozan.unal@gmail.com"}]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "scikit-image>=0.21",
+    "torch>=2.2",
+    "matplotlib>=3.7",
+    "tqdm>=4.65",
+    "pytorch-radon @ git+https://github.com/mozanunal/pytorch_radon@3b24dc44f168953e141a3dee81c2e79a11b6b29a",
+]
+
+[project.optional-dependencies]
+legacy = ["bm3d>=4", "dival>=0.6", "torchvision>=0.17", "pytorch-msssim>=1.0"]
+dev = ["pytest>=8", "build>=1"]
+
+[project.urls]
+Repository = "https://github.com/mozanunal/SparseCT"
+Paper = "https://doi.org/10.7717/peerj-cs.1849"
+
+[tool.setuptools.packages.find]
+include = ["sparse_ct*"]
+
+[tool.setuptools.package-data]
+sparse_ct = ["data/**/*.png", "data/**/*.jpg"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-import torchvision.transforms.functional as F
 from skimage.transform import resize
 from skimage.io import imsave, imshow_collection, imshow
 from skimage.draw import line, rectangle, rectangle_perimeter
